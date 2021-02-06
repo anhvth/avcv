@@ -14,7 +14,11 @@ import inspect
 import shutil
 import xxhash
 
-print_source = lambda x: print(inspect.getsource(x))
+
+def print_source(x):
+    print(inspect.getsource(x))
+    print("---- Define in:")
+    print(f"{inspect.getsourcefile(x)}: {x.__code__.co_firstlineno}")
 
 def lib_reload(some_module):
     import importlib
