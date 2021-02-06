@@ -50,8 +50,9 @@ def read_json(path):
 
 def multi_process(fn, array_inputs, max_workers=4):
     print(f"Multi-Process: {max_workers} workers")
-    with Pool(self.num_proc) as p:
+    with Pool(max_workers) as p:
         r = list(tqdm(p.imap(fn, array_inputs), total=len(array_inputs)))
+    return r
 
 
 
@@ -222,6 +223,6 @@ def show_df(df, path_column=None, max_col_width=-1):
 
 if __name__ == '__main__':
     def f(i):
-        print(i)
+        return i*2
 
-    multi_process(f, range(10))
+    r = multi_process(f, range(10))
