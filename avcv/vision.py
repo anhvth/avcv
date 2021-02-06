@@ -318,7 +318,6 @@ def images_to_video(images, out_path, fps=30, sort=True, max_num_frame=1000):
     imgs = []
     def get_num(s):
         try:
-            print(s)
             s = os.path.basename(s)
             num = int(''.join([c for c in s if s.isdigit()]))
         except:
@@ -336,10 +335,6 @@ def images_to_video(images, out_path, fps=30, sort=True, max_num_frame=1000):
     # img_array = utils.multi_thread(f, images, verbose=True)
     if sort:
         images = list(sorted(images, key=get_num))
-        if isinstance(images[0], str):
-            print("Order:")
-            for image in images:
-                print(get_num(image))
     imgs = utils.multi_thread(f, images[:max_num_frame], verbose=True)  #[mmcv.imread(path) for path in tqdm(images)]
 
     h, w = imgs[0].shape[:2]
