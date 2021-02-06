@@ -7,16 +7,11 @@ from concurrent.futures import ThreadPoolExecutor
 from tqdm import tqdm
 import pickle
 from functools import partial
-#import mmcv
 import numpy as np
 from six.moves import map, zip
 import inspect
 import shutil
-try:
-    import xxhash
-    import torch
-except:
-    pass
+import xxhash
 
 print_source = lambda x: print(inspect.getsource(x))
 
@@ -52,19 +47,7 @@ def read_json(path):
     return data
 
 
-def swap_list(lst):
-    assert isinstance(lst, (list, tuple))
-    assert isinstance(lst[0], (list, tuple))
-    len_list = len(lst)
-    len_elem = len(lst[0])
-    out = [[None for _ in range(len_list)] for _ in range(len_elem)]
-    for i in range(len_list):
-        for j in range(len_elem):
-            out[j][i] = lst[i][j]
-    return out
-
-
-def multi_thread(fn, array_inputs, max_workers=None, desc="Executing Pipeline", unit=" Samples", verbose=False):
+def multi_thread(fn, array_inputs, max_workers=None, desc="Multithreading Pipeline", unit=" Samples", verbose=False):
     def _wraper(x):
         i, input = x
         return {i: fn(input)}
@@ -189,7 +172,6 @@ def make_mini_dataset(json_path, image_prefix, out_dir, n=1000):
     print(out_json)
 
 
-
 def show_df(df, path_column=None, max_col_width=-1):
     """
         Turn a DataFrame which has the image_path column into a html table
@@ -231,66 +213,4 @@ def show_df(df, path_column=None, max_col_width=-1):
 
 
 
-
-def load_ssh(link, ssh_username, ssh_password, server_address, web_port=8000):
-    assert link.startswith('/checkpoints')
-    from torch.utils import model_zoo
-    from sshtunnel import SSHTunnelForwarder
-    with SSHTunnelForwarder(
-        (server_address[0], server_address[1]),
-        ssh_username=ssh_username,
-        ssh_password=ssh_password,
-        remote_bind_address=('localhost', web_port)
-    ) as server:
-        link = f'http://localhost:{server.local_bind_port}'+link.replace('/checkpoints', '')
-        print("Downloading with ssh: ", link)
-        ckpt = model_zoo.load_url(link)
-    return ckpt
-
-
-def mm_multi_apply(func, *args, **kwargs):
-    """Apply function to a list of arguments
-
-    Note:
-        This function applies the ``func`` to multiple inputs and
-            map the multiple outputs of the ``func`` into different
-            list. Each list contains the same type of outputs corresponding
-            to different inputs.
-
-    Args:
-        func (Function): A function that will be applied to a list of
-            arguments
-
-    Returns:
-        tuple(list): A tuple containing multiple list, each list contains
-            a kind of returned results by the function
-    """
-    pfunc = partial(func, **kwargs) if kwargs else func
-    map_results = map(pfunc, *args)
-    return tuple(map(list, zip(*map_results))) 
-
-if __name__ == '__main__':
-    inputs_1 = [i for i in range(10)]
-    inputs_2 = [i*2 for i in range(10)]
-    def fn(x1, x2):
-        return x1+x2, x1-x2
-    my_result = multi_apply(fn, inputs_1, inputs_2)
-    mm_result = mm_multi_apply(fn, inputs_1, inputs_2)
-    import pdb; pdb.set_trace()
-    for aa,bb in zip(my_result, mm_result):
-        for a, b in zip(aa,bb):
-            assert a == b, f'{a}, {b} differ'
-    print('Success')
-    # import pdb; pdb.set_trace()
-    # path = 'sample_image/1.png'
-    # image = read_img(path)
-    # print('Test show from path')
-    # show(path)
-    # print('Test show from np image')
-    i = list(range(10))
-    j = list(range(0, 20, 2))
-    def fn(a,b):
-        return a+b, a-b
-    result_1 = multi_apply(fn, i, j)
-    reuslt_2 = mm_multi_apply(fn, i, j)
 
