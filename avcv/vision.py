@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import os
 import mmcv
 from tqdm import tqdm
-from . import utils
+from avcv import utils
 
 
 def get_min_rect(c, resize_ratio):
@@ -48,7 +48,6 @@ def convert_mask_to_cell(line_mask):
         Returns:
             a list of cells        
     """
-
     def is_rect(contour):
         """ Check if a contour is rectangle.
             Arguments:
@@ -102,10 +101,12 @@ def imread(path, to_gray=False, scale=(0, 255)):
 
     return img
 
+
 def imwrite(path, img, is_rgb=True):
     if is_rgb:
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
     return cv2.imwrite(path, img)
+
 
 def resize_by_factor(image, factor):
     """ Resize image by a factor
@@ -146,7 +147,8 @@ def resize_to_receptive_field(image, receptive_field=256):
     Returns:
         resieed image
     """
-    new_h, new_w = np.ceil(np.array(image.shape[:2]) / receptive_field).astype(np.int32) * receptive_field
+    new_h, new_w = np.ceil(np.array(image.shape[:2]) / receptive_field).astype(
+        np.int32) * receptive_field
     image = cv2.resize(image, (new_w, new_h))
     return image
 
@@ -160,22 +162,30 @@ def batch_ratio(preds, targets):
     return np.mean(rt)
 
 
-def plot_images(images, labels=None, cls_true=None, cls_pred=None,
-                space=(0.3, 0.3), mxn=None, 
-                size=(5,5), dpi=300, max_w = 1500, output_path=None, cmap='binary'):
-    
+def plot_images(images,
+                labels=None,
+                cls_true=None,
+                cls_pred=None,
+                space=(0.3, 0.3),
+                mxn=None,
+                size=(5, 5),
+                dpi=300,
+                max_w=1500,
+                output_path=None,
+                cmap='binary'):
+
     if mxn is None:
         n = max(max_w // max([img.shape[1] for img in images]), 1)
         n = min(n, len(images))
-        m = len(images)//n 
+        m = len(images) // n
         m = max(1, m)
-        mxn = (m,n)
+        mxn = (m, n)
         print(mxn)
-        
+
     fig, axes = plt.subplots(*mxn)
     fig.subplots_adjust(hspace=space[0], wspace=space[1])
     fig.figsize = size
-    fig.dpi=dpi
+    fig.dpi = dpi
     for i, ax in enumerate(axes.flat):
         if i < len(images):
             ax.imshow(images[i], cmap=cmap)
@@ -184,8 +194,8 @@ def plot_images(images, labels=None, cls_true=None, cls_pred=None,
             elif cls_pred is None and cls_true is not None:
                 xlabel = "True: {0}".format(cls_true[i])
             elif cls_pred is None and cls_true is not None:
-                xlabel = "True: {0}, Pred: {1}".format(
-                    cls_true[i], cls_pred[i])
+                xlabel = "True: {0}, Pred: {1}".format(cls_true[i],
+                                                       cls_pred[i])
             else:
                 xlabel = None
             if xlabel is not None:
@@ -198,14 +208,13 @@ def plot_images(images, labels=None, cls_true=None, cls_pred=None,
         plt.savefig(output_path)
         plt.close()
 
-    
+
 def run_data_init(initers, shuffle):
     for initer in initers:
         data = initer['index']
         if shuffle:
             data = shuffle_by_batch(data, batch_size)
         sess.run(initer['initer'], {initer['x']: data})
-
 
 
 def show(inp, size=10, dpi=300, cmap='gray'):
@@ -235,8 +244,8 @@ def find_contours(thresh):
                 Hierarchy:
 
     """
-    contours, hierarchy = cv2.findContours(
-        thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE,
+                                           cv2.CHAIN_APPROX_SIMPLE)
     return contours, hierarchy[0]
 
 
@@ -250,28 +259,28 @@ def sort_contours(contours, method="left-to-right"):
         i = 1
 
     bounding_boxes = [cv2.boundingRect(c) for c in contours]
-    (contours, bounding_boxes) = zip(*sorted(zip(contours, bounding_boxes),
-                                             key=lambda b: b[1][i], reverse=reverse))
+    (contours, bounding_boxes) = zip(*sorted(
+        zip(contours, bounding_boxes), key=lambda b: b[1][i], reverse=reverse))
 
     return contours, bounding_boxes
 
 
 def put_text(image, pos, text):
-    return cv2.putText(image, text, pos, cv2.FONT_HERSHEY_SIMPLEX,
-                       1.0, (255, 255, 255), 2)
+    return cv2.putText(image, text, pos, cv2.FONT_HERSHEY_SIMPLEX, 1.0,
+                       (255, 255, 255), 2)
 
 
 def torch_tensor_to_image(tensor, cdim=1):
-    permute = [0,2,3,1] if len(tensor.shape) == 4 else [1,2,0]
+    permute = [0, 2, 3, 1] if len(tensor.shape) == 4 else [1, 2, 0]
     np_array = tensor.detach().permute(permute).cpu().numpy()
-    np_array = (np_array-np_array.min())/(np_array.max()-np_array.min())
-    np_array = (np_array)*255
+    np_array = (np_array - np_array.min()) / (np_array.max() - np_array.min())
+    np_array = (np_array) * 255
     return np_array.astype('uint8')
 
 
 # def visualize_torch_tensor(input_tensor, normalize=True, output_path=None, input_type='onehot'):
 #     import torch
-    
+
 #     if isinstance(input_tensor, torch.Tensor):
 #         input_tensor = input_tensor.detach().cpu().numpy()
 #         if len(np.unique(input_tensor)) == 2:
@@ -300,35 +309,44 @@ def torch_tensor_to_image(tensor, cdim=1):
 #     print('out-> :', output_path)
 
 
+def images_to_video(images, out_path, fps=30, sort=True, max_num_frame=1000):
 
+    if os.path.isdir(images):
+        from glob import glob
+        images = glob(os.path.join(images, "*.jpg")) + glob(os.path.join(images, "*.png"))
 
-def images_to_video(images, out_path, fps=30, sort=True):
     imgs = []
-    def get_num(str):
+    def get_num(s):
         try:
-            str = os.path.basename(str)
-            num = int(''.join([s for s in str if s.isdigit()]))
+            print(s)
+            s = os.path.basename(s)
+            num = int(''.join([c for c in s if s.isdigit()]))
         except:
-            num = ''
-        
-        return int(num)
+            num = s
+        return num
 
-    def f(img):
-        if isinstance(img, str):
-            name =  os.path.basename(img)
-            img = cv2.imread(img)
-            img = put_text(img, (20, 20),name)
+    def f(img_or_path):
+        if isinstance(img_or_path, str):
+            name = os.path.basename(img_or_path)
+            img = cv2.imread(img_or_path)
+            assert img is not None, img_or_path
+            img = put_text(img, (20, 20), name)
         return img
-    
+
     # img_array = utils.multi_thread(f, images, verbose=True)
     if sort:
         images = list(sorted(images, key=get_num))
-    imgs = utils.multi_thread(f, images, verbose=True) #[mmcv.imread(path) for path in tqdm(images)]
+        if isinstance(images[0], str):
+            print("Order:")
+            for image in images:
+                print(get_num(image))
+    imgs = utils.multi_thread(f, images[:max_num_frame], verbose=True)  #[mmcv.imread(path) for path in tqdm(images)]
+
     h, w = imgs[0].shape[:2]
     size = (w, h)
-    
+
     out = cv2.VideoWriter(out_path, cv2.VideoWriter_fourcc(*'DIVX'), fps, size)
-     
+
     for i in range(len(imgs)):
         im = cv2.resize(imgs[i], size)
         out.write(im)
