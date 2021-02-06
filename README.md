@@ -2,7 +2,7 @@
 
 # Instalation
 
-pip install git+https://github.com/vnbot2/pyson.git
+pip install git+https://github.com/anhvth/avcv.git
 
 # Usage
 
