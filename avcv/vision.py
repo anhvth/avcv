@@ -323,7 +323,7 @@ def images_to_video(images, out_path, fps=30, sort=True, max_num_frame=1000):
         except:
             num = s
         return num
-
+    global f
     def f(img_or_path):
         if isinstance(img_or_path, str):
             name = os.path.basename(img_or_path)
@@ -335,7 +335,8 @@ def images_to_video(images, out_path, fps=30, sort=True, max_num_frame=1000):
     # img_array = utils.multi_thread(f, images, verbose=True)
     if sort:
         images = list(sorted(images, key=get_num))
-    imgs = utils.multi_thread(f, images[:max_num_frame], verbose=True)  #[mmcv.imread(path) for path in tqdm(images)]
+    # imgs = utils.multi_thread(f, images[:max_num_frame], verbose=True)  #[mmcv.imread(path) for path in tqdm(images)]
+    imgs = utils.multi_process(f, images[:max_num_frame])  #[mmcv.imread(path) for path in tqdm(images)]
 
     h, w = imgs[0].shape[:2]
     size = (w, h)

@@ -1,3 +1,4 @@
+from multiprocessing import Pool
 import json
 import numpy as np
 from glob import glob
@@ -45,6 +46,13 @@ def read_json(path):
     with open(path, 'r') as f:
         data = json.load(f)
     return data
+
+
+def multi_process(fn, array_inputs, max_workers=4):
+    print(f"Multi-Process: {max_workers} workers")
+    with Pool(self.num_proc) as p:
+        r = list(tqdm(p.imap(fn, array_inputs), total=len(array_inputs)))
+
 
 
 def multi_thread(fn, array_inputs, max_workers=None, desc="Multithreading Pipeline", unit=" Samples", verbose=False):
@@ -212,5 +220,8 @@ def show_df(df, path_column=None, max_col_width=-1):
     return HTML(df.to_html(formatters={path_column: image_formatter}, escape=False))
 
 
+if __name__ == '__main__':
+    def f(i):
+        print(i)
 
-
+    multi_process(f, range(10))
