@@ -60,7 +60,7 @@ def multi_process(fn, array_inputs, max_workers=4):
 
 
 
-def multi_thread(fn, array_inputs, max_workers=None, desc="Multithreading Pipeline", unit=" Samples", verbose=False):
+def multi_thread(fn, array_inputs, max_workers=None, desc="Multi-thread Pipeline", unit=" Samples", verbose=False):
     def _wraper(x):
         i, input = x
         return {i: fn(input)}

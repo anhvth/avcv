@@ -2,9 +2,12 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-import mmcv
 from tqdm import tqdm
 from avcv import utils
+try:
+    import mmcv
+except:
+    mmcv=None
 
 
 def get_min_rect(c, resize_ratio):
