@@ -224,6 +224,7 @@ def show(inp, size=10, dpi=300, cmap='gray'):
     """
         Input: either a path or image
     """
+    inp = mmcv.imread(inp)
     if len(inp.shape) == 4:
         inp = inp[0]
     inp = np.squeeze(inp)
@@ -314,7 +315,7 @@ def torch_tensor_to_image(tensor, cdim=1):
 
 def images_to_video(images, out_path, fps=30, sort=True, max_num_frame=1000):
 
-    if os.path.isdir(images):
+    if isinstance(images, str) and os.path.isdir(images):
         from glob import glob
         images = glob(os.path.join(images, "*.jpg")) + glob(os.path.join(images, "*.png"))
 
@@ -333,10 +334,12 @@ def images_to_video(images, out_path, fps=30, sort=True, max_num_frame=1000):
             img = cv2.imread(img_or_path)
             assert img is not None, img_or_path
             img = put_text(img, (20, 20), name)
+        else:
+            img = img_or_path
         return img
 
     # img_array = utils.multi_thread(f, images, verbose=True)
-    if sort:
+    if sort and isinstance(images[0], str):
         images = list(sorted(images, key=get_num))
     # imgs = utils.multi_thread(f, images[:max_num_frame], verbose=True)  #[mmcv.imread(path) for path in tqdm(images)]
     imgs = utils.multi_process(f, images[:max_num_frame])  #[mmcv.imread(path) for path in tqdm(images)]
