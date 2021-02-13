@@ -1,13 +1,16 @@
-import cv2
-import numpy as np
-import matplotlib.pyplot as plt
 import os
+
+import cv2
+import matplotlib.pyplot as plt
+import numpy as np
 from tqdm import tqdm
-from avcv import utils
+
+from avcv import utils as au
+
 try:
     import mmcv
 except:
-    mmcv=None
+    mmcv = None
 
 
 def get_min_rect(c, resize_ratio):
@@ -317,9 +320,11 @@ def images_to_video(images, out_path, fps=30, sort=True, max_num_frame=1000):
 
     if isinstance(images, str) and os.path.isdir(images):
         from glob import glob
-        images = glob(os.path.join(images, "*.jpg")) + glob(os.path.join(images, "*.png"))
+        images = glob(os.path.join(images, "*.jpg")) + \
+            glob(os.path.join(images, "*.png"))
 
     imgs = []
+
     def get_num(s):
         try:
             s = os.path.basename(s)
@@ -328,6 +333,7 @@ def images_to_video(images, out_path, fps=30, sort=True, max_num_frame=1000):
             num = s
         return num
     global f
+
     def f(img_or_path):
         if isinstance(img_or_path, str):
             name = os.path.basename(img_or_path)
@@ -338,11 +344,12 @@ def images_to_video(images, out_path, fps=30, sort=True, max_num_frame=1000):
             img = img_or_path
         return img
 
-    # img_array = utils.multi_thread(f, images, verbose=True)
+    # img_array = au.multi_thread(f, images, verbose=True)
     if sort and isinstance(images[0], str):
         images = list(sorted(images, key=get_num))
-    # imgs = utils.multi_thread(f, images[:max_num_frame], verbose=True)  #[mmcv.imread(path) for path in tqdm(images)]
-    imgs = utils.multi_process(f, images[:max_num_frame])  #[mmcv.imread(path) for path in tqdm(images)]
+    # imgs = au.multi_thread(f, images[:max_num_frame], verbose=True)  #[mmcv.imread(path) for path in tqdm(images)]
+    # [mmcv.imread(path) for path in tqdm(images)]
+    imgs = au.multi_process(f, images[:max_num_frame])
 
     h, w = imgs[0].shape[:2]
     size = (w, h)
@@ -354,5 +361,3 @@ def images_to_video(images, out_path, fps=30, sort=True, max_num_frame=1000):
         out.write(im)
     out.release()
     print(out_path)
-
-
