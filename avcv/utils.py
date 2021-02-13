@@ -13,7 +13,13 @@ from six.moves import map, zip
 import inspect
 import shutil
 import xxhash
+import os.path as osp
 
+def path2filename(path, with_ext=False):
+    """Returns name of the file"
+    """
+    name = osp.basename(path)
+    return name if with_ext else name.split('.')[0]
 
 def print_source(x):
     print(inspect.getsource(x))
