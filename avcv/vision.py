@@ -361,3 +361,28 @@ def images_to_video(images, out_path, fps=30, sort=True, max_num_frame=1000):
         out.write(im)
     out.release()
     print(out_path)
+
+def video_to_images(input_video, output_dir, skip=1):
+    import cv2 
+    import os 
+    skip = int(skip)
+    # Read the video from specified path 
+    cam = cv2.VideoCapture(input_video) 
+    os.makedirs(output_dir, exist_ok=True) 
+    # frame 
+    currentframe = 0
+    while(True): 
+        # reading from frame 
+        ret,frame = cam.read() 
+        
+        if ret: 
+            # if video is still left continue creating images 
+            name =  os.path.join(output_dir,str(currentframe) + '.jpg') 
+            currentframe += 1
+            if currentframe % skip == 0:
+                cv2.imwrite(name, frame) 
+        else: 
+            break
+    # Release all space and windows once done 
+    cam.release() 
+    cv2.destroyAllWindows() 
