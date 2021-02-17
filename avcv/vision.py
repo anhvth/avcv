@@ -227,13 +227,13 @@ def show(inp, size=10, dpi=300, cmap='gray'):
     """
         Input: either a path or image
     """
-    inp = mmcv.imread(inp)
+    # inp = mmcv.imread(inp)
     if len(inp.shape) == 4:
         inp = inp[0]
     inp = np.squeeze(inp)
     if type(inp) is str:
         assert os.path.exists(inp)
-        inp = read_img(inp)
+        inp = cv2.imread(inp)
     if size is None:
         size = max(5, inp.shape[1] // 65)
     plt.figure(figsize=(size, size), dpi=dpi)
