@@ -317,7 +317,9 @@ def torch_tensor_to_image(tensor, cdim=1):
 
 
 def images_to_video(images, out_path, fps=30, sort=True, max_num_frame=1000):
-
+    fps = int(fps)
+    max_num_frame = int(max_num_frame)
+    sort = bool(sort)
     if isinstance(images, str) and os.path.isdir(images):
         from glob import glob
         images = glob(os.path.join(images, "*.jpg")) + \
@@ -328,7 +330,7 @@ def images_to_video(images, out_path, fps=30, sort=True, max_num_frame=1000):
     def get_num(s):
         try:
             s = os.path.basename(s)
-            num = int(''.join([c for c in s if s.isdigit()]))
+            num = int(''.join([c for c in s if c.isdigit()]))
         except:
             num = s
         return num
@@ -349,11 +351,10 @@ def images_to_video(images, out_path, fps=30, sort=True, max_num_frame=1000):
         images = list(sorted(images, key=get_num))
     # imgs = au.multi_thread(f, images[:max_num_frame], verbose=True)  #[mmcv.imread(path) for path in tqdm(images)]
     # [mmcv.imread(path) for path in tqdm(images)]
-    imgs = au.multi_process(f, images[:max_num_frame])
+    imgs = au.multi_process(f, images[:max_num_frame], 16)
 
     h, w = imgs[0].shape[:2]
     size = (w, h)
-
     out = cv2.VideoWriter(out_path, cv2.VideoWriter_fourcc(*'DIVX'), fps, size)
 
     for i in range(len(imgs)):
