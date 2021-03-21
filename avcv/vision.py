@@ -4,6 +4,7 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
+import os.path as osp
 
 from avcv import utils as au
 
@@ -387,3 +388,33 @@ def video_to_images(input_video, output_dir, skip=1):
     # Release all space and windows once done 
     cam.release() 
     cv2.destroyAllWindows() 
+
+def gt_to_color_mask(gt, palette=None):
+    class_ids = np.unique(gt)
+    h, w = gt.shape[:2]
+    if palette is None:
+        palette = dict()
+        for cls_id in class_ids:
+            np.random.seed(cls_id)
+            color = np.random.choice(255, 3)
+            palette[cls_id] = color
+
+    mask = np.zeros([h,w,3], 'uint8')
+    for cls_id in class_ids:
+        ids = gt == cls_id
+        mask[ids] = palette[cls_id]
+
+    return mask
+
+def visualize_seg_gt(input_dir, output_dir):
+    paths = au.get_paths(input_dir, 'png')
+    def fun(path_in_out):    
+        path, output_dir = path_in_out
+        gt = mmcv.imread(path, cv2.IMREAD_UNCHANGED)
+        mask = gt_to_color_mask(gt)
+        name = osp.basename(path)
+        out_path = osp.join(output_dir, name)
+        
+        mmcv.imwrite(mask, out_path)
+
+    au.multi_thread(fun, [[path, output_dir] for path in paths])
