@@ -3,6 +3,10 @@
 pip install git+https://github.com/anhvth/avcv.git
 
 # Usage
+Visualize a directory of seg gt
+```bash
+python -m avcv.run visualize_seg_gt -a ./gt21_9c_ob_extend_test ./vis
+```
 ## Examples
 Convert a folder of images to video
 
@@ -14,3 +18,5 @@ Now give it the positional arguments
 ```bash
     python -m avcv.run images-to-video  -a /data/fisheye_cams/20201207/timecity_T13_1/ ../output.mp4
 ```
+
+
