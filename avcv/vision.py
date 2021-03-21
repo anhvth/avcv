@@ -406,7 +406,7 @@ def gt_to_color_mask(gt, palette=None):
 
     return mask
 
-def visualize_seg_gt(input_dir, output_dir):
+def vis_ids_to_segmask(input_dir, output_dir):
     paths = au.get_paths(input_dir, 'png')
     def fun(path_in_out):    
         path, output_dir = path_in_out
@@ -418,3 +418,20 @@ def visualize_seg_gt(input_dir, output_dir):
         mmcv.imwrite(mask, out_path)
 
     au.multi_thread(fun, [[path, output_dir] for path in paths])
+
+
+def vis_segmask_to_ids(input_dir, output_dir, id_to_color):
+    paths = au.get_paths(input_dir, 'png')
+    def fun(path_in_out):    
+        path, output_dir = path_in_out
+        gt = mmcv.imread(path, cv2.IMREAD_UNCHANGED)
+        h, w = gt.shape[:2]
+        mask = np.zeros((h, w), 'uint8')
+        for id, color in id_to_color.items():
+            ids = (gt == color).mean(-1) == 1
+            mask[ids] = id
+        name = osp.basename(path)
+        out_path = osp.join(output_dir, name)
+        mmcv.imwrite(mask, out_path)
+
+    au.multi_thread(fun, [[path, output_dir] for path in paths], verbose=True, max_workers=4)
