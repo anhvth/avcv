@@ -1,7 +1,10 @@
 # Instalation
-
+```
 pip install git+https://github.com/anhvth/avcv.git
-
+```
+```
+git clone https://github.com/anhvth/avcv.git ~/avcv && pip install -e ~/avcv
+```
 # Usage
 Visualize a directory of seg gt
 ```bash
@@ -18,5 +21,6 @@ Now give it the positional arguments
 ```bash
     python -m avcv.run images-to-video  -a /data/fisheye_cams/20201207/timecity_T13_1/ ../output.mp4
 ```
+
 
 
