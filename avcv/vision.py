@@ -406,7 +406,7 @@ def gt_to_color_mask(gt, palette=None):
 
     return mask
 
-def visualize_seg_gt(input_dir, output_dir):
+def vis_seg(input_dir, output_dir):
     paths = au.get_paths(input_dir, 'png')
     def fun(path_in_out):    
         path, output_dir = path_in_out
@@ -418,3 +418,21 @@ def visualize_seg_gt(input_dir, output_dir):
         mmcv.imwrite(mask, out_path)
 
     au.multi_thread(fun, [[path, output_dir] for path in paths])
+
+
+def vis_combine(dir_a, dir_b, combine_dir, alpha=None):
+    import itertools
+    paths_a = list(sorted(au.get_paths(dir_a, 'jpg')+au.get_paths(dir_a, 'png')))
+    paths_b = list(sorted(au.get_paths(dir_b, 'jpg')+au.get_paths(dir_b, 'png')))
+
+    for pa, pb in itertools.product(paths_a, paths_b):
+        if osp.basename(pa).split('.')[0]!=osp.basename(pb).split('.')[0]: continue
+        ima = mmcv.imread(pa)
+        imb = mmcv.imread(pb)
+        if alpha is None:
+            imab = np.concatenate([ima, imb], 1)
+        else:
+            imab = (0.5*ima + 0.5*imb).astype('uint8')
+        name = osp.basename(pa)
+        out_path = osp.join(combine_dir, name)
+        mmcv.imwrite(imab, out_path)

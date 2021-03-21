@@ -46,8 +46,8 @@ def get_paths(directory, input_type='png'):
         return: a list of paths
     """
     paths = glob(os.path.join(directory, '*.{}'.format(input_type)))
-    assert len(paths) > 0, '\n\tDirectory:\t{}\n\tInput type:\t{} \n num of paths must be > 0'.format(
-        dir, input_type)
+    # assert len(paths) > 0, '\n\tDirectory:\t{}\n\tInput type:\t{} \n num of paths must be > 0'.format(
+    #     dir, input_type)
     print('Found {} files {}'.format(len(paths), input_type))
     return paths
 
