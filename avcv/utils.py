@@ -195,7 +195,7 @@ def make_mini_dataset(json_path, image_prefix, out_dir, n=1000):
     print(out_json)
 
 
-def show_df(df, path_column=None, max_col_width=-1):
+def show_df(df, path_column=None, max_col_width=-1, height=512):
     """
         Turn a DataFrame which has the image_path column into a html table
             with watchable images
@@ -217,9 +217,9 @@ def show_df(df, path_column=None, max_col_width=-1):
     pandas.set_option('display.max_colwidth', max_col_width)
 
     def get_thumbnail(path):
-        img = cv2.imread(path, 0)
+        img = cv2.imread(path)
         h, w = img.shape[:2]
-        f = 48/h
+        f = height/h
         img = cv2.resize(img, (0, 0), fx=f, fy=f)
         return Image.fromarray(img)
 
