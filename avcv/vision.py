@@ -452,3 +452,29 @@ def vis_combine(dir_a, dir_b, combine_dir, alpha=None):
         name = osp.basename(pa)
         out_path = osp.join(combine_dir, name)
         mmcv.imwrite(imab, out_path)
+
+
+def resize_mask(mask, ratio=1/4):
+    import torch.nn.functional as F
+    def resize(input,
+            size=None,
+            scale_factor=None,
+            mode='nearest',
+            align_corners=None,
+            warning=True):
+        return F.interpolate(input, size, scale_factor, mode, align_corners)
+
+    import torch
+    mask = mmcv.imread(mask, cv2.IMREAD_UNCHANGED)
+    assert len(mask.shape) == 2
+    ori_h, ori_w = mask.shape[:2]
+    h = int(ori_h*ratio)
+    w = int(ori_w*ratio) 
+    new_size = (h,w)
+    mask = torch.from_numpy(mask)
+    one_hot = torch.nn.functional.one_hot(mask.long(), mask.max()+1)[None].permute([0,3,1,2])
+    one_hot_resize = resize(one_hot.float(), new_size)[0]
+    out = one_hot_resize.argmax(0).cpu().numpy()
+    return out.astype('uint8')
+
+
