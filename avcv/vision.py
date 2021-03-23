@@ -396,28 +396,28 @@ def gt_to_color_mask(gt, palette=None):
         palette = dict()
         for cls_id in class_ids:
             np.random.seed(cls_id)
-            color = np.random.choice(255, 3)
+            color = np.random.choice(256, 3)
             palette[cls_id] = color
 
     mask = np.zeros([h,w,3], 'uint8')
     for cls_id in class_ids:
         ids = gt == cls_id
-        mask[ids] = palette[cls_id]
-
+        color = palette[cls_id]
+        mask[ids] = color
     return mask
 
-def vis_ids_to_segmask(input_dir, output_dir):
+def vis_ids_to_segmask(input_dir, output_dir, palete=None):
     paths = au.get_paths(input_dir, 'png')
     def fun(path_in_out):    
         path, output_dir = path_in_out
         gt = mmcv.imread(path, cv2.IMREAD_UNCHANGED)
-        mask = gt_to_color_mask(gt)
+        mask = gt_to_color_mask(gt, palete)
         name = osp.basename(path)
         out_path = osp.join(output_dir, name)
-        
+        mask = cv2.cvtColor(mask, cv2.COLOR_BGR2RGB)
         mmcv.imwrite(mask, out_path)
 
-    au.multi_thread(fun, [[path, output_dir] for path in paths])
+    au.multi_thread(fun, [[path, output_dir] for path in paths], max_workers=1)
 
 
 def vis_segmask_to_ids(input_dir, output_dir, id_to_color):

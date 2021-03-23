@@ -39,16 +39,16 @@ def do_by_chance(chance):
     return np.random.uniform() < chance/100
 
 
-def get_paths(directory, input_type='png'):
+def get_paths(directory, input_type='png', sort=True):
     """
         Get a list of input_type paths
         params args:
         return: a list of paths
     """
     paths = glob(os.path.join(directory, '*.{}'.format(input_type)))
-    # assert len(paths) > 0, '\n\tDirectory:\t{}\n\tInput type:\t{} \n num of paths must be > 0'.format(
-    #     dir, input_type)
-    print('Found {} files {}'.format(len(paths), input_type))
+    if sort:
+        paths =  list(sorted(paths))
+    print('Found and sorted {} files {}'.format(len(paths), input_type))
     return paths
 
 
@@ -235,6 +235,9 @@ def show_df(df, path_column=None, max_col_width=-1):
 
     return HTML(df.to_html(formatters={path_column: image_formatter}, escape=False))
 
+
+def get_name(path):
+    return osp.basename(path).split('.')[0]
 
 if __name__ == '__main__':
     def f(i):
