@@ -454,7 +454,10 @@ def vis_combine(dir_a, dir_b, combine_dir, alpha=None):
         mmcv.imwrite(imab, out_path)
 
 
-def resize_mask(mask, ratio=1/4):
+def resize_mask(mask, ratio=None, size=None):
+    """Resize
+        size: (w, h)
+    """
     import torch.nn.functional as F
     def resize(input,
             size=None,
@@ -468,8 +471,13 @@ def resize_mask(mask, ratio=1/4):
     mask = mmcv.imread(mask, cv2.IMREAD_UNCHANGED)
     assert len(mask.shape) == 2
     ori_h, ori_w = mask.shape[:2]
-    h = int(ori_h*ratio)
-    w = int(ori_w*ratio) 
+    if ratio is not None:
+        h = int(ori_h*ratio)
+        w = int(ori_w*ratio) 
+    elif size is not None:
+        w, h = size
+    else:
+        raise NotImplemented
     new_size = (h,w)
     mask = torch.from_numpy(mask)
     one_hot = torch.nn.functional.one_hot(mask.long(), mask.max()+1)[None].permute([0,3,1,2])
