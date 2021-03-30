@@ -4,3 +4,4 @@ xxhash
 matplotlib
 scikit-learn
 scikit-image
+ipdb
