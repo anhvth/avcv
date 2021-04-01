@@ -390,6 +390,10 @@ def video_to_images(input_video, output_dir, skip=1):
     cv2.destroyAllWindows() 
 
 def gt_to_color_mask(gt, palette=None):
+    # import ipdb; ipdb.set_trace()
+    if len(gt.shape) == 3:
+        from panopticapi.utils import rgb2id
+        gt = rgb2id(gt)
     class_ids = np.unique(gt)
     h, w = gt.shape[:2]
     if palette is None:

@@ -14,6 +14,8 @@ import numpy as np
 import xxhash
 from six.moves import map, zip
 from tqdm import tqdm
+import mmcv
+import pprint
 
 
 def path2filename(path, with_ext=False):
@@ -273,6 +275,25 @@ def download_file_from_google_drive(id, destination):
     save_response_content(response, destination)    
 
 
+
+
+def parse_args(parser):
+    cache_path = osp.join(os.environ['HOME'], '.cache', identify(osp.abspath(__file__))+'.json')
+    # import ipdb; ipdb.set_trace()
+    # try:
+    args = parser.parse_args()
+    args = mmcv.Config(args.__dict__)
+    os.makedirs(osp.dirname(cache_path), exist_ok=True)
+    mmcv.dump(args.__dict__, cache_path)
+    # except Exception as e:
+        # pp = pprint.PrettyPrinter(depth=4)
+        # args = mmcv.Config(mmcv.load(cache_path))
+        # pp.pprint(args.__dict__)
+        # print('Exception: ', e)
+
+
+
+    return args
 
 if __name__ == '__main__':
     def f(i):
