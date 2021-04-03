@@ -21,8 +21,10 @@ if __name__ == '__main__':
             for value, var_name in zip(args.arguments, fn.__code__.co_varnames):
                 print(var_name, ":", value)
             fn(*args.arguments)
-    except:
-        print("Available function:")
-        for func in dir():
-            if not '__' in func:
-                print(func)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        # print("Available function:")
+        # for func in dir():
+        #     if not '__' in func:
+        #         print(func)

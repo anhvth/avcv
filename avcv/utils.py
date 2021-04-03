@@ -1,3 +1,4 @@
+import shelve
 import inspect
 import json
 import os
@@ -15,11 +16,17 @@ import xxhash
 from six.moves import map, zip
 from tqdm import tqdm
 import mmcv
-import pprint
+
+
+def pp(d):
+    import pprint
+    _ = pprint.PrettyPrinter(4)
+    _.pprint(d)
 
 
 def mkdir(d):
     return os.makedirs(d, exist_ok=True)
+
 
 def path2filename(path, with_ext=False):
     """Returns name of the file"
@@ -52,7 +59,7 @@ def get_paths(directory, input_type='png', sort=True):
     """
     paths = glob(os.path.join(directory, '*.{}'.format(input_type)))
     if sort:
-        paths =  list(sorted(paths))
+        paths = list(sorted(paths))
     print('Found and sorted {} files {}'.format(len(paths), input_type))
     return paths
 
@@ -245,10 +252,9 @@ def get_name(path):
     return osp.basename(path).split('.')[0]
 
 
-
-
 def download_file_from_google_drive(id, destination):
     import requests
+
     def get_confirm_token(response):
         for key, value in response.cookies.items():
             if key.startswith('download_warning'):
@@ -261,27 +267,26 @@ def download_file_from_google_drive(id, destination):
 
         with open(destination, "wb") as f:
             for chunk in response.iter_content(CHUNK_SIZE):
-                if chunk: # filter out keep-alive new chunks
+                if chunk:  # filter out keep-alive new chunks
                     f.write(chunk)
 
     URL = "https://docs.google.com/uc?export=download"
 
     session = requests.Session()
 
-    response = session.get(URL, params = { 'id' : id }, stream = True)
+    response = session.get(URL, params={'id': id}, stream=True)
     token = get_confirm_token(response)
 
     if token:
-        params = { 'id' : id, 'confirm' : token }
-        response = session.get(URL, params = params, stream = True)
+        params = {'id': id, 'confirm': token}
+        response = session.get(URL, params=params, stream=True)
 
-    save_response_content(response, destination)    
-
-
+    save_response_content(response, destination)
 
 
 def parse_args(parser):
-    cache_path = osp.join(os.environ['HOME'], '.cache', identify(osp.abspath(__file__))+'.json')
+    cache_path = osp.join(os.environ['HOME'], '.cache', identify(
+        osp.abspath(__file__))+'.json')
     # import ipdb; ipdb.set_trace()
     # try:
     args = parser.parse_args()
@@ -289,17 +294,13 @@ def parse_args(parser):
     os.makedirs(osp.dirname(cache_path), exist_ok=True)
     mmcv.dump(args.__dict__, cache_path)
     # except Exception as e:
-        # pp = pprint.PrettyPrinter(depth=4)
-        # args = mmcv.Config(mmcv.load(cache_path))
-        # pp.pprint(args.__dict__)
-        # print('Exception: ', e)
-
-
+    # pp = pprint.PrettyPrinter(depth=4)
+    # args = mmcv.Config(mmcv.load(cache_path))
+    # pp.pprint(args.__dict__)
+    # print('Exception: ', e)
 
     return args
 
-
-import shelve
 
 def save_workspace(filename, names_of_spaces_to_save, dict_of_values_to_save):
     '''
@@ -320,10 +321,10 @@ def save_workspace(filename, names_of_spaces_to_save, dict_of_values_to_save):
             >>> dir()
             ['__builtins__', '__doc__', '__name__', '__package__', 'x']
     '''
-    print ('save_workspace')
-    print ('C_hat_bests' in names_of_spaces_to_save)
-    print (dict_of_values_to_save)
-    my_shelf = shelve.open(filename,'n') # 'n' for new
+    print('save_workspace')
+    print('C_hat_bests' in names_of_spaces_to_save)
+    print(dict_of_values_to_save)
+    my_shelf = shelve.open(filename, 'n')  # 'n' for new
     for key in names_of_spaces_to_save:
         try:
             my_shelf[key] = dict_of_values_to_save[key]
@@ -335,6 +336,7 @@ def save_workspace(filename, names_of_spaces_to_save, dict_of_values_to_save):
             pass
     my_shelf.close()
 
+
 def load_workspace(filename, parent_globals):
     '''
         filename = location to load workspace.
@@ -342,8 +344,47 @@ def load_workspace(filename, parent_globals):
     '''
     my_shelf = shelve.open(filename)
     for key in my_shelf:
-        parent_globals[key]=my_shelf[key]
+        parent_globals[key] = my_shelf[key]
     my_shelf.close()
+
+
+def parse_debug_command(cmd):
+    # "python tools/test.py configs/road_seg/v1.py work_dirs/v1-finetune/iter_1000.pth --show --show-dir ./cache/"
+    for _ in range(3):
+        cmd = cmd.replace('  ', '')
+    i_split = cmd.index(".py")+4
+    file = cmd[:i_split].strip().split(' ')[1]
+
+    args = cmd[i_split:].split(' ')
+
+    cfg = {
+        "name": "Python: Latest-Generated",
+        "type": "python",
+        "request": "launch",
+        "program": f"{file}",
+        "console": "integratedTerminal",
+        "args": args,
+    }
+    # pp(cfg)
+    mkdir(".vscode")
+    if osp.exists(".vscode/launch.json"):
+        lauch = read_json(".vscode/launch.json")
+    else:
+        lauch = {
+            "version": "0.2.0",
+            "configurations": [
+
+            ]
+        }
+    replace = False
+    for i, _cfg in enumerate(lauch['configurations']):
+        if _cfg["name"] == cfg["name"]:
+            lauch["configurations"][i] = cfg
+            replace = True
+    if not replace:
+        lauch["configurations"] += [cfg]
+    with open('.vscode/launch.json', 'w') as f:
+        json.dump(lauch, f, indent=4)
 
 
 if __name__ == '__main__':
@@ -351,4 +392,3 @@ if __name__ == '__main__':
         return i*2
 
     r = multi_process(f, range(10))
-
