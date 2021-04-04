@@ -367,20 +367,24 @@ def images_to_video(images, out_path, fps=30, sort=True, max_num_frame=1000):
 def video_to_images(input_video, output_dir, skip=1):
     import cv2 
     import os 
+    from imutils.video import count_frames
     skip = int(skip)
     # Read the video from specified path 
     cam = cv2.VideoCapture(input_video) 
+    total_frames = count_frames(input_video)
     os.makedirs(output_dir, exist_ok=True) 
     # frame 
     currentframe = 0
-    while(True): 
+
+    
+    # while(True):
+    for current_frame in tqdm(range(0, total_frames, skip)): 
         # reading from frame 
         ret,frame = cam.read() 
         
         if ret: 
             # if video is still left continue creating images 
-            name =  os.path.join(output_dir,str(currentframe) + '.jpg') 
-            currentframe += 1
+            name =  os.path.join(output_dir,f'{current_frame:05d}' + '.jpg') 
             if currentframe % skip == 0:
                 cv2.imwrite(name, frame) 
         else: 
