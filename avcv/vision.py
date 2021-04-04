@@ -393,7 +393,7 @@ def video_to_images(input_video, output_dir, skip=1):
     cam.release() 
     cv2.destroyAllWindows() 
 
-def gt_to_color_mask(gt, palette=None):
+def gt_to_color_mask(gt, mask=None,palette=None):
     # import ipdb; ipdb.set_trace()
     if len(gt.shape) == 3:
         from panopticapi.utils import rgb2id
@@ -406,8 +406,8 @@ def gt_to_color_mask(gt, palette=None):
             np.random.seed(cls_id)
             color = np.random.choice(256, 3)
             palette[cls_id] = color
-
-    mask = np.zeros([h,w,3], 'uint8')
+    if mask is None:
+        mask = np.zeros([h,w,3], 'uint8')
     for cls_id in class_ids:
         ids = gt == cls_id
         color = palette[cls_id]
