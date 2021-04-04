@@ -367,9 +367,11 @@ def parse_debug_command(cmd):
     }
     # pp(cfg)
     mkdir(".vscode")
-    if osp.exists(".vscode/launch.json"):
+#     if osp.exists(".vscode/launch.json"):
+    try:
         lauch = read_json(".vscode/launch.json")
-    else:
+#     else:
+    except:
         lauch = {
             "version": "0.2.0",
             "configurations": [
@@ -385,6 +387,7 @@ def parse_debug_command(cmd):
         lauch["configurations"] += [cfg]
     with open('.vscode/launch.json', 'w') as f:
         json.dump(lauch, f, indent=4)
+    pp(lauch)
 
 
 if __name__ == '__main__':
