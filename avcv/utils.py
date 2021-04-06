@@ -142,35 +142,27 @@ def memoize(func):
     import os
     import pickle
     from functools import wraps
-
     import xxhash
+
     '''Cache result of function call on disk
     Support multiple positional and keyword arguments'''
-
-    def print_status(status, func, args, kwargs):
-        pass
-
     @wraps(func)
     def memoized_func(*args, **kwargs):
         cache_dir = 'cache'
         try:
-            if 'hash_key' in kwargs.keys():
-                import inspect
-                func_id = identify(kwargs['hash_key'])
-            else:
-                import inspect
-                func_id = identify((inspect.getsource(func), args, kwargs))
-            cache_path = os.path.join(cache_dir, func_id)
+            import inspect
+            func_id = identify((inspect.getsource(func), args, kwargs))
+            cache_path = os.path.join(cache_dir, func.__name__+'_'+func_id)
 
             if (os.path.exists(cache_path) and
                     not func.__name__ in os.environ and
                     not 'BUST_CACHE' in os.environ):
-                return pickle.load(open(cache_path, 'rb'))
+                result = pickle.load(open(cache_path, 'rb'))
             else:
                 result = func(*args, **kwargs)
                 os.makedirs(cache_dir, exist_ok=True)
                 pickle.dump(result, open(cache_path, 'wb'))
-                return result
+            return result
         except (KeyError, AttributeError, TypeError):
             return func(*args, **kwargs)
     return memoized_func
