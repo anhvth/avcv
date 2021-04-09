@@ -403,8 +403,11 @@ def gt_to_color_mask(gt, mask=None,palette=None):
     if palette is None:
         palette = dict()
         for cls_id in class_ids:
-            np.random.seed(cls_id)
-            color = np.random.choice(256, 3)
+            np.random.seed(cls_id+1)
+            if cls_id == 0:
+                color = np.array([0,0,0])
+            else:
+                color = np.random.choice(256, 3)
             palette[cls_id] = color
     if mask is None:
         mask = np.zeros([h,w,3], 'uint8')
