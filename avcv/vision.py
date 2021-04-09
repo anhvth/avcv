@@ -379,7 +379,7 @@ def video_to_images(input_video, output_dir, skip=1):
         
         if ret: 
             # if video is still left continue creating images 
-            name =  os.path.join(output_dir,str(currentframe) + '.jpg') 
+            name =  os.path.join(output_dir,f'{currentframe:05d}.jpg') 
             currentframe += 1
             if currentframe % skip == 0:
                 cv2.imwrite(name, frame) 
@@ -436,20 +436,36 @@ def vis_segmask_to_ids(input_dir, output_dir, id_to_color):
 
     au.multi_thread(fun, [[path, output_dir] for path in paths], verbose=True, max_workers=4)
     
-def vis_combine(dir_a, dir_b, combine_dir, alpha=None):
+def vis_combine(dir_a, dir_b, combine_dir, split_txt=None, alpha=None):
+    import mmcv
     import itertools
-    paths_a = list(sorted(au.get_paths(dir_a, 'jpg')+au.get_paths(dir_a, 'png')))
-    paths_b = list(sorted(au.get_paths(dir_b, 'jpg')+au.get_paths(dir_b, 'png')))
+    from glob import glob
+    paths_a = glob(os.path.join(dir_a, '**', '*.jpg'), recursive=True)+glob(os.path.join(dir_a, '**', '*.png'), recursive=True)+glob(os.path.join(dir_a, '**', '*.jpeg'), recursive=True)
+    
 
-    for pa, pb in itertools.product(paths_a, paths_b):
+    paths_b = []
+    for path_a in paths_a:
+        print(path_a)
+        name = path_a.split(split_txt)[-1]
+        path_b = osp.join(dir_b, name)
+        paths_b.append(path_b)
+        assert osp.exists(path_b)
+    # paths_a = list(sorted(au.get_paths(dir_a, 'jpg')+au.get_paths(dir_a, 'png')))
+    # paths_b = list(sorted(au.get_paths(dir_b, 'jpg')+au.get_paths(dir_b, 'png')))
+
+    # for pa, pb in itertools.product(paths_a, paths_b):
+    for pa, pb in zip(paths_a, paths_b):
         if osp.basename(pa).split('.')[0]!=osp.basename(pb).split('.')[0]: continue
         ima = mmcv.imread(pa)
+        h, w= ima.shape[:2]
         imb = mmcv.imread(pb)
+        imb = mmcv.imresize(imb, (w,h))
         if alpha is None:
             imab = np.concatenate([ima, imb], 1)
         else:
             imab = (0.5*ima + 0.5*imb).astype('uint8')
-        name = osp.basename(pa)
+        # name = osp.basename(pa)
+        name = pa.split(split_txt)[-1]
         out_path = osp.join(combine_dir, name)
         mmcv.imwrite(imab, out_path)
 
