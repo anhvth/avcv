@@ -21,8 +21,14 @@ if __name__ == '__main__':
             for value, var_name in zip(args.arguments, fn.__code__.co_varnames):
                 print(var_name, ":", value)
             fn(*args.arguments)
-    except:
+    except Exception as e:
         print("Available function:")
+        n_suggestion = 0
         for func in dir():
-            if not '__' in func:
+            if not '__' in func and args.task in func:
+                n_suggestion += 1
                 print(func)
+        if n_suggestion == 0:
+            import traceback
+            traceback.print_exc()
+            print("Found no suggestion")

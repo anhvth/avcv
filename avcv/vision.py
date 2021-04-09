@@ -367,20 +367,24 @@ def images_to_video(images, out_path, fps=30, sort=True, max_num_frame=1000):
 def video_to_images(input_video, output_dir, skip=1):
     import cv2 
     import os 
+    from imutils.video import count_frames
     skip = int(skip)
     # Read the video from specified path 
     cam = cv2.VideoCapture(input_video) 
+    total_frames = count_frames(input_video)
     os.makedirs(output_dir, exist_ok=True) 
     # frame 
     currentframe = 0
-    while(True): 
+
+    
+    # while(True):
+    for current_frame in tqdm(range(0, total_frames, skip)): 
         # reading from frame 
         ret,frame = cam.read() 
         
         if ret: 
             # if video is still left continue creating images 
-            name =  os.path.join(output_dir,f'{currentframe:05d}.jpg') 
-            currentframe += 1
+            name =  os.path.join(output_dir,f'{current_frame:05d}' + '.jpg') 
             if currentframe % skip == 0:
                 cv2.imwrite(name, frame) 
         else: 
@@ -389,17 +393,24 @@ def video_to_images(input_video, output_dir, skip=1):
     cam.release() 
     cv2.destroyAllWindows() 
 
-def gt_to_color_mask(gt, palette=None):
+def gt_to_color_mask(gt, mask=None,palette=None):
+    # import ipdb; ipdb.set_trace()
+    if len(gt.shape) == 3:
+        from panopticapi.utils import rgb2id
+        gt = rgb2id(gt)
     class_ids = np.unique(gt)
     h, w = gt.shape[:2]
     if palette is None:
         palette = dict()
         for cls_id in class_ids:
-            np.random.seed(cls_id)
-            color = np.random.choice(256, 3)
+            np.random.seed(cls_id+1)
+            if cls_id == 0:
+                color = np.array([0,0,0])
+            else:
+                color = np.random.choice(256, 3)
             palette[cls_id] = color
-
-    mask = np.zeros([h,w,3], 'uint8')
+    if mask is None:
+        mask = np.zeros([h,w,3], 'uint8')
     for cls_id in class_ids:
         ids = gt == cls_id
         color = palette[cls_id]

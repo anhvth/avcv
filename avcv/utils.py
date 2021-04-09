@@ -1,3 +1,4 @@
+import shelve
 import inspect
 import json
 import os
@@ -14,6 +15,17 @@ import numpy as np
 import xxhash
 from six.moves import map, zip
 from tqdm import tqdm
+import mmcv
+
+
+def pp(d):
+    import pprint
+    _ = pprint.PrettyPrinter(4)
+    _.pprint(d)
+
+
+def mkdir(d):
+    return os.makedirs(d, exist_ok=True)
 
 
 def path2filename(path, with_ext=False):
@@ -47,7 +59,7 @@ def get_paths(directory, input_type='png', sort=True):
     """
     paths = glob(os.path.join(directory, '*.{}'.format(input_type)))
     if sort:
-        paths =  list(sorted(paths))
+        paths = list(sorted(paths))
     print('Found and sorted {} files {}'.format(len(paths), input_type))
     return paths
 
@@ -130,35 +142,27 @@ def memoize(func):
     import os
     import pickle
     from functools import wraps
-
     import xxhash
+
     '''Cache result of function call on disk
     Support multiple positional and keyword arguments'''
-
-    def print_status(status, func, args, kwargs):
-        pass
-
     @wraps(func)
     def memoized_func(*args, **kwargs):
         cache_dir = 'cache'
         try:
-            if 'hash_key' in kwargs.keys():
-                import inspect
-                func_id = identify(kwargs['hash_key'])
-            else:
-                import inspect
-                func_id = identify((inspect.getsource(func), args, kwargs))
-            cache_path = os.path.join(cache_dir, func_id)
+            import inspect
+            func_id = identify((inspect.getsource(func), args, kwargs))
+            cache_path = os.path.join(cache_dir, func.__name__+'_'+func_id)
 
             if (os.path.exists(cache_path) and
                     not func.__name__ in os.environ and
                     not 'BUST_CACHE' in os.environ):
-                return pickle.load(open(cache_path, 'rb'))
+                result = pickle.load(open(cache_path, 'rb'))
             else:
                 result = func(*args, **kwargs)
                 os.makedirs(cache_dir, exist_ok=True)
                 pickle.dump(result, open(cache_path, 'wb'))
-                return result
+            return result
         except (KeyError, AttributeError, TypeError):
             return func(*args, **kwargs)
     return memoized_func
@@ -240,10 +244,9 @@ def get_name(path):
     return osp.basename(path).split('.')[0]
 
 
-
-
 def download_file_from_google_drive(id, destination):
     import requests
+
     def get_confirm_token(response):
         for key, value in response.cookies.items():
             if key.startswith('download_warning'):
@@ -256,22 +259,127 @@ def download_file_from_google_drive(id, destination):
 
         with open(destination, "wb") as f:
             for chunk in response.iter_content(CHUNK_SIZE):
-                if chunk: # filter out keep-alive new chunks
+                if chunk:  # filter out keep-alive new chunks
                     f.write(chunk)
 
     URL = "https://docs.google.com/uc?export=download"
 
     session = requests.Session()
 
-    response = session.get(URL, params = { 'id' : id }, stream = True)
+    response = session.get(URL, params={'id': id}, stream=True)
     token = get_confirm_token(response)
 
     if token:
-        params = { 'id' : id, 'confirm' : token }
-        response = session.get(URL, params = params, stream = True)
+        params = {'id': id, 'confirm': token}
+        response = session.get(URL, params=params, stream=True)
 
-    save_response_content(response, destination)    
+    save_response_content(response, destination)
 
+
+def parse_args(parser):
+    cache_path = osp.join(os.environ['HOME'], '.cache', identify(
+        osp.abspath(__file__))+'.json')
+    # import ipdb; ipdb.set_trace()
+    # try:
+    args = parser.parse_args()
+    args = mmcv.Config(args.__dict__)
+    os.makedirs(osp.dirname(cache_path), exist_ok=True)
+    mmcv.dump(args.__dict__, cache_path)
+    # except Exception as e:
+    # pp = pprint.PrettyPrinter(depth=4)
+    # args = mmcv.Config(mmcv.load(cache_path))
+    # pp.pprint(args.__dict__)
+    # print('Exception: ', e)
+
+    return args
+
+
+def save_workspace(filename, names_of_spaces_to_save, dict_of_values_to_save):
+    '''
+        filename = location to save workspace.
+        names_of_spaces_to_save = use dir() from parent to save all variables in previous scope.
+            -dir() = return the list of names in the current local scope
+        dict_of_values_to_save = use globals() or locals() to save all variables.
+            -globals() = Return a dictionary representing the current global symbol table.
+            This is always the dictionary of the current module (inside a function or method,
+            this is the module where it is defined, not the module from which it is called).
+            -locals() = Update and return a dictionary representing the current local symbol table.
+            Free variables are returned by locals() when it is called in function blocks, but not in class blocks.
+
+        Example of globals and dir():
+            >>> x = 3 #note variable value and name bellow
+            >>> globals()
+            {'__builtins__': <module '__builtin__' (built-in)>, '__name__': '__main__', 'x': 3, '__doc__': None, '__package__': None}
+            >>> dir()
+            ['__builtins__', '__doc__', '__name__', '__package__', 'x']
+    '''
+    print('save_workspace')
+    print('C_hat_bests' in names_of_spaces_to_save)
+    print(dict_of_values_to_save)
+    my_shelf = shelve.open(filename, 'n')  # 'n' for new
+    for key in names_of_spaces_to_save:
+        try:
+            my_shelf[key] = dict_of_values_to_save[key]
+        except TypeError:
+            #
+            # __builtins__, my_shelf, and imported modules can not be shelved.
+            #
+            #print('ERROR shelving: {0}'.format(key))
+            pass
+    my_shelf.close()
+
+
+def load_workspace(filename, parent_globals):
+    '''
+        filename = location to load workspace.
+        parent_globals use globals() to load the workspace saved in filename to current scope.
+    '''
+    my_shelf = shelve.open(filename)
+    for key in my_shelf:
+        parent_globals[key] = my_shelf[key]
+    my_shelf.close()
+
+
+def parse_debug_command(cmd):
+    # "python tools/test.py configs/road_seg/v1.py work_dirs/v1-finetune/iter_1000.pth --show --show-dir ./cache/"
+    for _ in range(3):
+        cmd = cmd.replace('  ', '')
+    i_split = cmd.index(".py")+4
+    file = cmd[:i_split].strip().split(' ')[1]
+
+    args = cmd[i_split:].split(' ')
+
+    cfg = {
+        "name": "Python: Latest-Generated",
+        "type": "python",
+        "request": "launch",
+        "program": f"{file}",
+        "console": "integratedTerminal",
+        "args": args,
+    }
+    # pp(cfg)
+    mkdir(".vscode")
+#     if osp.exists(".vscode/launch.json"):
+    try:
+        lauch = read_json(".vscode/launch.json")
+#     else:
+    except:
+        lauch = {
+            "version": "0.2.0",
+            "configurations": [
+
+            ]
+        }
+    replace = False
+    for i, _cfg in enumerate(lauch['configurations']):
+        if _cfg["name"] == cfg["name"]:
+            lauch["configurations"][i] = cfg
+            replace = True
+    if not replace:
+        lauch["configurations"] += [cfg]
+    with open('.vscode/launch.json', 'w') as f:
+        json.dump(lauch, f, indent=4)
+    pp(lauch)
 
 
 if __name__ == '__main__':
