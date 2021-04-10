@@ -1,9 +1,9 @@
-import shelve
 import inspect
 import json
 import os
 import os.path as osp
 import pickle
+import shelve
 import shutil
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -11,11 +11,11 @@ from functools import partial
 from glob import glob
 from multiprocessing import Pool
 
+import mmcv
 import numpy as np
 import xxhash
 from six.moves import map, zip
 from tqdm import tqdm
-import mmcv
 
 def pp(d):
     import pprint
@@ -141,6 +141,7 @@ def memoize(func):
     import os
     import pickle
     from functools import wraps
+
     import xxhash
 
     '''Cache result of function call on disk
