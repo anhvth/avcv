@@ -17,7 +17,6 @@ from six.moves import map, zip
 from tqdm import tqdm
 import mmcv
 
-
 def pp(d):
     import pprint
     _ = pprint.PrettyPrinter(4)
