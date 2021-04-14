@@ -22,13 +22,14 @@ if __name__ == '__main__':
                 print(var_name, ":", value)
             fn(*args.arguments)
     except Exception as e:
-        print("Available function:")
+        import traceback
+        traceback.print_exc()
+        print("\n", "-"*40,"\nAvailable function:")
         n_suggestion = 0
         for func in dir():
             if not '__' in func and args.task in func:
                 n_suggestion += 1
                 print(func)
         if n_suggestion == 0:
-            import traceback
-            traceback.print_exc()
+
             print("Found no suggestion")

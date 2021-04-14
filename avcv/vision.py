@@ -252,9 +252,12 @@ def find_contours(thresh):
                 Hierarchy:
 
     """
-    contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE,
-                                           cv2.CHAIN_APPROX_SIMPLE)
-    return contours, hierarchy[0]
+    try:
+        contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE,
+                                            cv2.CHAIN_APPROX_SIMPLE)
+        return contours, hierarchy[0]
+    except:
+        return None, None
 
 
 def sort_contours(contours, method="left-to-right"):
@@ -451,6 +454,7 @@ def vis_combine(dir_a, dir_b, combine_dir, split_txt=None, alpha=None):
     import mmcv
     import itertools
     from glob import glob
+
     paths_a = glob(os.path.join(dir_a, '**', '*.jpg'), recursive=True)+glob(os.path.join(dir_a, '**', '*.png'), recursive=True)+glob(os.path.join(dir_a, '**', '*.jpeg'), recursive=True)
     
 
@@ -459,12 +463,9 @@ def vis_combine(dir_a, dir_b, combine_dir, split_txt=None, alpha=None):
         print(path_a)
         name = path_a.split(split_txt)[-1]
         path_b = osp.join(dir_b, name)
+        assert osp.exists(path_b), path_b
         paths_b.append(path_b)
-        assert osp.exists(path_b)
-    # paths_a = list(sorted(au.get_paths(dir_a, 'jpg')+au.get_paths(dir_a, 'png')))
-    # paths_b = list(sorted(au.get_paths(dir_b, 'jpg')+au.get_paths(dir_b, 'png')))
-
-    # for pa, pb in itertools.product(paths_a, paths_b):
+        
     for pa, pb in zip(paths_a, paths_b):
         if osp.basename(pa).split('.')[0]!=osp.basename(pb).split('.')[0]: continue
         ima = mmcv.imread(pa)
