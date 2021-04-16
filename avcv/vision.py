@@ -320,7 +320,7 @@ def torch_tensor_to_image(tensor, cdim=1):
 #     print('out-> :', output_path)
 
 
-def images_to_video(images, out_path, fps=30, sort=True, max_num_frame=1000):
+def images_to_video(images, out_path, fps=30, sort=True, max_num_frame=1000, with_text=False):
     fps = int(fps)
     max_num_frame = int(max_num_frame)
     sort = bool(sort)
@@ -345,7 +345,8 @@ def images_to_video(images, out_path, fps=30, sort=True, max_num_frame=1000):
             name = os.path.basename(img_or_path)
             img = cv2.imread(img_or_path)
             assert img is not None, img_or_path
-            img = put_text(img, (20, 20), name)
+            if with_text:
+                img = put_text(img, (20, 20), name)
         else:
             img = img_or_path
         return img
