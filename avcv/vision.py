@@ -276,9 +276,9 @@ def sort_contours(contours, method="left-to-right"):
     return contours, bounding_boxes
 
 
-def put_text(image, pos, text):
+def put_text(image, pos, text, color=(255, 255, 255)):
     return cv2.putText(image, text, pos, cv2.FONT_HERSHEY_SIMPLEX, 1.0,
-                       (255, 255, 255), 2)
+                       color, 2)
 
 
 def torch_tensor_to_image(tensor, cdim=1):
@@ -320,9 +320,10 @@ def torch_tensor_to_image(tensor, cdim=1):
 #     print('out-> :', output_path)
 
 
-def images_to_video(images, out_path, fps=30, sort=True, max_num_frame=1000, with_text=False):
+def images_to_video(images, out_path, fps=30, sort=True, max_num_frame=10e12, with_text=False):
     fps = int(fps)
     max_num_frame = int(max_num_frame)
+    max_num_frame = min(len(images), max_num_frame)
     sort = bool(sort)
     if isinstance(images, str) and os.path.isdir(images):
         from glob import glob
@@ -356,14 +357,15 @@ def images_to_video(images, out_path, fps=30, sort=True, max_num_frame=1000, wit
         images = list(sorted(images, key=get_num))
     # imgs = au.multi_thread(f, images[:max_num_frame], verbose=True)  #[mmcv.imread(path) for path in tqdm(images)]
     # [mmcv.imread(path) for path in tqdm(images)]
-    imgs = au.multi_process(f, images[:max_num_frame], 16)
+    # imgs = au.multi_process(f, images[:max_num_frame], 16)
 
-    h, w = imgs[0].shape[:2]
+    h, w = mmcv.imread(images[0]).shape[:2]
     size = (w, h)
     out = cv2.VideoWriter(out_path, cv2.VideoWriter_fourcc(*'DIVX'), fps, size)
 
-    for i in range(len(imgs)):
-        im = cv2.resize(imgs[i], size)
+    for i in range(len(images)):
+        img = f(images[i])
+        im = cv2.resize(img, size)
         out.write(im)
     out.release()
     print(out_path)
