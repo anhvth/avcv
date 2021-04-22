@@ -290,8 +290,10 @@ def parse_args(parser):
     # args = mmcv.Config(mmcv.load(cache_path))
     # pp.pprint(args.__dict__)
     # print('Exception: ', e)
-
     return args
+
+
+# def change_vscode_run_cmd()
 
 
 def save_workspace(filename, names_of_spaces_to_save, dict_of_values_to_save):
@@ -340,7 +342,20 @@ def load_workspace(filename, parent_globals):
     my_shelf.close()
 
 
-def parse_debug_command(cmd):
+def change_vscode_run_cmd(cmd):
+    # print("Cmd:",cmd)
+    file_sh = osp.join(os.environ['HOME'], '.cache/', 'vs_cmd.sh')
+    mkdir(os.path.dirname(file_sh))
+    with open(file_sh, 'w') as f:
+        f.write(f"{cmd}")
+        f.write("\necho")
+        f.write("\necho")
+        f.write("\necho ---------------------------------")
+        f.write(f"\necho '{cmd}'")
+
+
+
+def parse_debug_command():
     # "python tools/test.py configs/road_seg/v1.py work_dirs/v1-finetune/iter_1000.pth --show --show-dir ./cache/"
     for _ in range(3):
         cmd = cmd.replace('  ', '')
