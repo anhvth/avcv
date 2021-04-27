@@ -397,6 +397,58 @@ def parse_debug_command():
     pp(lauch)
 
 
+def copy_unzip(input_dir, output_dir):
+    def process_path(path:str):
+        relative_path = osp.relpath(path, input_dir)
+        out_rel_dir = osp.dirname(relative_path)+get_name(relative_path)
+        if path.endswith('.zip'):
+            output_path = osp.abspath(osp.join(output_dir, out_rel_dir))
+            return f"7z x {path} -o{output_path}"
+        elif path[:-1].endswith('.zip.00'):
+            if int(path.split('.')[-1]) == 1:
+                output_path = osp.abspath(osp.join(output_dir, out_rel_dir))
+                return f"7z x {path} -o{output_path}"
+        else:
+            output_path = osp.abspath(osp.join(output_dir, out_rel_dir))
+            mkdir(output_path)
+            return f"cp -r {path} {output_path}"
+
+
+    def get_path(input_dir):
+        if osp.isdir(input_dir):
+            rt = []
+            lst_files = os.listdir(input_dir)
+            outs = [get_path(osp.join(input_dir, file)) for file in lst_files]
+            for out in outs:
+                if isinstance(out, str):
+                    out_path = osp.abspath(out)
+                    
+                    rt.append(out_path)
+                else:
+                    rt.extend(out)
+            return rt
+            
+        else:
+            return input_dir
+
+    cmds = []
+    for path in get_path(input_dir):
+        cmd = process_path(path)
+        if cmd is not None:
+            cmds.append(cmd)
+
+    cmds = list(sorted(cmds, key=lambda x:x))
+    workers=5
+    with open("cmd.sh", "w") as f:
+        for i, cmd in enumerate(cmds):
+            if i>1 and i%5 == 0:
+                f.write(cmd+"\n")
+            else:
+                f.write(cmd+" | ")
+
+    print("cmd.sh")
+
+
 if __name__ == '__main__':
     def f(i):
         return i*2
