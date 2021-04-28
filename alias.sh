@@ -14,3 +14,4 @@ vs_run(){
 
 alias v2i="av video_to_images  -a"
 alias i2v="av images_to_video  -a"
+alias ids2rgb="av vis_ids_to_segmask -a "

@@ -399,10 +399,17 @@ def video_to_images(input_video, output_dir, skip=1):
     cam.release() 
     cv2.destroyAllWindows() 
 
+def rgb2id(color):
+    if isinstance(color, np.ndarray) and len(color.shape) == 3:
+        if color.dtype == np.uint8:
+            color = color.astype(np.int32)
+        return color[:, :, 0] + 256 * color[:, :, 1] + 256 * 256 * color[:, :, 2]
+    return int(color[0] + 256 * color[1] + 256 * 256 * color[2])
+
 def gt_to_color_mask(gt, mask=None,palette=None):
     # import ipdb; ipdb.set_trace()
     if len(gt.shape) == 3:
-        from panopticapi.utils import rgb2id
+        # from panopticapi.utils import rgb2id
         gt = rgb2id(gt)
     class_ids = np.unique(gt)
     h, w = gt.shape[:2]

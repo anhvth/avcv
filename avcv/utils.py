@@ -355,7 +355,7 @@ def change_vscode_run_cmd(cmd):
 
 
 
-def parse_debug_command():
+def parse_debug_command(cmd):
     # "python tools/test.py configs/road_seg/v1.py work_dirs/v1-finetune/iter_1000.pth --show --show-dir ./cache/"
     for _ in range(3):
         cmd = cmd.replace('  ', '')
@@ -448,6 +448,16 @@ def copy_unzip(input_dir, output_dir):
 
     print("cmd.sh")
 
+
+class NameIdHash:
+    def __init__(self):
+        self.mapping = dict()
+
+    def __call__(self, cat):
+        if not cat in self.mapping:
+            id = len(self.mapping)
+            self.mapping[cat] = id
+        return self.mapping[cat]
 
 if __name__ == '__main__':
     def f(i):
