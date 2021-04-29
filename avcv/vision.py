@@ -426,8 +426,9 @@ def gt_to_color_mask(gt, mask=None,palette=None):
         mask = np.zeros([h,w,3], 'uint8')
     for cls_id in class_ids:
         ids = gt == cls_id
-        color = palette[cls_id]
-        mask[ids] = color
+        if cls_id < len(palette):
+            color = palette[cls_id]
+            mask[ids] = color
     return mask
 
 def vis_ids_to_segmask(input_dir, output_dir, palete=None):
