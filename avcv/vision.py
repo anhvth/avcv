@@ -472,7 +472,10 @@ def vis_combine(dir_a, dir_b, combine_dir, split_txt=None, alpha=None):
     paths_b = []
     for path_a in paths_a:
         print(path_a)
-        name = path_a.split(split_txt)[-1]
+        if split_txt is not None:
+            name = path_a.split(split_txt)[-1]
+        else:
+            name = osp.basename(path_a)
         path_b = osp.join(dir_b, name)
         assert osp.exists(path_b), path_b
         paths_b.append(path_b)
