@@ -20,6 +20,7 @@ def debug_make_mini_dataset(json_path, image_prefix, out_dir, n=1000, file_name=
                 old_path = os.path.join(image_prefix, file_name)
                 new_path = os.path.join(out_dir, "images", file_name)
                 shutil.copy(old_path, new_path)    
+                img_ids = [image['id']]
         else:
             for image["id"] in img_ids[:n]:
                 images.append(image)
