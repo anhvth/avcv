@@ -1,6 +1,6 @@
 from avcv.vision import *
 from avcv.utils import *
-
+from avcv.debug_utils import *
 if __name__ == '__main__':
     try:
         import argparse

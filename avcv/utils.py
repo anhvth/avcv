@@ -168,35 +168,6 @@ def memoize(func):
     return memoized_func
 
 
-def make_mini_dataset(json_path, image_prefix, out_dir, n=1000):
-    print("Making mini dataset", out_dir, "num images:", n)
-    os.makedirs(os.path.join(out_dir, "images"), exist_ok=True)
-    os.makedirs(os.path.join(out_dir, "annotations"), exist_ok=True)
-    j = read_json(json_path)
-    img_ids = list(set([_["image_id"] for _ in j["annotations"]]))
-    img_id2path = {_["id"]: _ for _ in j["images"]}
-    images = []
-    annotations = []
-    print("make images")
-
-    for image in tqdm(j["images"]):
-        if image["id"] in img_ids[:n]:
-            images.append(image)
-            file_name = image["file_name"]
-            old_path = os.path.join(image_prefix, file_name)
-            new_path = os.path.join(out_dir, "images", file_name)
-            shutil.copy(old_path, new_path)
-
-    print("make annotations")
-    for annotation in tqdm(j["annotations"]):
-        if annotation["image_id"] in img_ids[:n]:
-            annotations.append(annotation)
-    j["images"] = images
-    j["annotations"] = annotations
-    out_json = os.path.join(out_dir, "annotations", "mini_json.json")
-    with open(out_json, "w") as f:
-        json.dump(j, f)
-    print(out_json)
 
 
 def show_df(df, path_column=None, max_col_width=-1, height=512):
