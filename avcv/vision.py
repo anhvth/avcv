@@ -404,7 +404,8 @@ def rgb2id(color):
         if color.dtype == np.uint8:
             color = color.astype(np.int32)
         return color[:, :, 0] + 256 * color[:, :, 1] + 256 * 256 * color[:, :, 2]
-    return int(color[0] + 256 * color[1] + 256 * 256 * color[2])
+    # import ipdb; ipdb.set_trace()
+    return color[...,0] + 256 * color[...,1] + 256 * 256 * color[...,2]
 
 def gt_to_color_mask(gt, mask=None,palette=None):
     # import ipdb; ipdb.set_trace()
@@ -472,8 +473,15 @@ def vis_combine(dir_a, dir_b, combine_dir, split_txt=None, alpha=None):
     paths_b = []
     for path_a in paths_a:
         print(path_a)
-        name = path_a.split(split_txt)[-1]
+        if split_txt is not None:
+            name = path_a.split(split_txt)[-1]
+        else:
+            name = au.get_name(path_a)+'.png'
+
         path_b = osp.join(dir_b, name)
+        if not osp.exists(path_b):
+            path_b = path_b.replace('.png', '.jpg')
+
         assert osp.exists(path_b), path_b
         paths_b.append(path_b)
         

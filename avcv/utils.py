@@ -448,6 +448,16 @@ def copy_unzip(input_dir, output_dir):
 
     print("cmd.sh")
 
+def convert_image(path, out_dir, mode="png->jpg"):
+    from_type, to_type = mode.split('->')
+    paths = get_paths(path, from_type)
+    # for path in paths:
+    def f(path):
+        img = mmcv.imread(path)
+        out_path = osp.join(out_dir, osp.basename(path).replace(f'.{from_type}', f'.{to_type}'))
+        mmcv.imwrite(img, out_path)
+    multi_thread(f, paths, verbose=1)
+
 
 class NameIdHash:
     def __init__(self):
