@@ -476,8 +476,12 @@ def vis_combine(dir_a, dir_b, combine_dir, split_txt=None, alpha=None):
         if split_txt is not None:
             name = path_a.split(split_txt)[-1]
         else:
+<<<<<<< HEAD
             name = au.get_name(path_a)+'.png'
 
+=======
+            name = osp.basename(path_a)
+>>>>>>> 2d0c732a557b8959eb7ffb81c7f3d3e53c5b36a8
         path_b = osp.join(dir_b, name)
         if not osp.exists(path_b):
             path_b = path_b.replace('.png', '.jpg')
