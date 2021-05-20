@@ -39,3 +39,43 @@ def debug_make_mini_dataset(json_path, image_prefix, out_dir, n=1000, file_name=
     with open(out_json, "w") as f:
         json.dump(j, f)
     print(out_json)
+
+
+def vsl(image_or_tensor, order="bhwc", normalize=True, out_file='cache/vsl.jpg'):
+    if 'Tensor' in str(type(image_or_tensor)):
+        if len(image_or_tensor.shape) == 4 and (image_or_tensor.shape[1] == 1 or image_or_tensor.shape[1]==3):
+            image_or_tensor = image_or_tensor.permute([0,2,3,1])
+        if len(image_or_tensor.shape) == 3 and (image_or_tensor.shape[0] == 1 or image_or_tensor.shape[1]==3):
+            image_or_tensor = image_or_tensor.permute([1,2,0])
+            image_or_tensor = image_or_tensor[None]
+
+        images = image_or_tensor.detach().cpu().numpy()
+    elif 'ndarray' in str(type(image_or_tensor)):
+        if len(image_or_tensor.shape) == 3:
+            if (image_or_tensor.shape[0] == 1 or image_or_tensor.shape[1]==3):
+                raise NotImplemented
+            else:
+                image_or_tensor = image_or_tensor[None]
+        
+        images = image_or_tensor
+    elif isinstance(image_or_tensor, list):
+        assert isinstance(image_or_tensor[0], np.ndarray)
+        images = image_or_tensor
+    if normalize:
+        outs = []
+        for i, image in enumerate(images):
+            image = image-image.min()
+            image = image/ image.max()
+            image *= 255
+            image = image.astype('uint8')
+            outs += [image]
+            images = outs
+
+            
+    mkdir('cache')
+    if len(images) == 1:
+        show(images[0], dpi=150)
+        plt.savefig(out_file)
+    else:
+        plot_images(images, out_file=out_file)
+    print(out_file)

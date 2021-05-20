@@ -178,11 +178,12 @@ def plot_images(images,
                 size=(5, 5),
                 dpi=300,
                 max_w=1500,
-                output_path=None,
+                out_file=None,
                 cmap='binary'):
 
     if mxn is None:
-        n = max(max_w // max([img.shape[1] for img in images]), 1)
+        # n = max(max_w // max([img.shape[1] for img in images]), 1)
+        n = int(np.sqrt(len(images)))
         n = min(n, len(images))
         m = len(images) // n
         m = max(1, m)
@@ -209,19 +210,12 @@ def plot_images(images,
                 ax.set_xlabel(xlabel)
             ax.set_xticks([])
             ax.set_yticks([])
-    if output_path is None:
+    if out_file is None:
         plt.show()
     else:
-        plt.savefig(output_path)
+        plt.savefig(out_file)
+        print('Save fig:', out_file)
         plt.close()
-
-
-def run_data_init(initers, shuffle):
-    for initer in initers:
-        data = initer['index']
-        if shuffle:
-            data = shuffle_by_batch(data, batch_size)
-        sess.run(initer['initer'], {initer['x']: data})
 
 
 def show(inp, size=10, dpi=300, cmap='gray'):
