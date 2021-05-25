@@ -1,17 +1,16 @@
 import os
 
 import cv2
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 import os.path as osp
 
 from avcv import utils as au
-
-try:
-    import mmcv
-except:
-    mmcv = None
+# try:
+#     import mmcv
+# except:
+#     mmcv = None
 
 
 def get_min_rect(c, resize_ratio):
@@ -48,127 +47,6 @@ def get_skeleton(img, line_size):
     return _
 
 
-def convert_mask_to_cell(line_mask):
-    """ Convert a mask of lines to cells.
-        Arguments:
-            line_mask: mask of lines
-        Returns:
-            a list of cells        
-    """
-    def is_rect(contour):
-        """ Check if a contour is rectangle.
-            Arguments:
-                contour: contours.
-            Returns:
-                Boolean value if contour is a rectangle.
-        """
-        _, _, w, h = cv2.boundingRect(contour)
-        area = cv2.contourArea(contour)
-        if area > 0 and w * h > 0 and area / w * h > 0.6:
-            return True
-        else:
-            return False
-
-    contours, hierarchy = find_contours(line_mask)
-    out_cnts = {}
-    for ci, (cnt, h) in enumerate(zip(contours, hierarchy)):
-        if is_rect(cnt):
-            rect = cv2.minAreaRect(cnt)
-            box = cv2.boxPoints(rect)
-            cnt = np.int0(box)
-            if h[-1] == -1:
-                out_cnts['table_{}'.format(ci)] = cnt
-            else:
-                out_cnts['cell_{}_table_{}'.format(ci, h[-1])] = cnt
-    return out_cnts
-
-
-def imread(path, to_gray=False, scale=(0, 255)):
-    """ Read image given a path
-        Arguments:
-            path: path to image
-            to_gray: convert image to gray
-            scale: if scale (0, 255)
-        Return: 
-            output image
-    """
-    img = cv2.imread(path)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    if to_gray:
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-    if scale[1] != 255:
-        min_val, max_val = scale
-        # after: 0-1
-        img = img / 255
-        # scale 0 -> (max_val-min_val)
-        img = img * (max_val - min_val)
-        # scale: min_val -> max_val
-        img = img + min_val
-
-    return img
-
-
-def imwrite(path, img, is_rgb=True):
-    if is_rgb:
-        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-    return cv2.imwrite(path, img)
-
-
-def resize_by_factor(image, factor):
-    """ Resize image by a factor
-        Arguments:
-            image: input image
-            factor: the factor by which the image being resized
-        Returns:
-            output image
-    """
-    if type(factor) == tuple:
-        fx, fy = factor
-    elif type(factor) == float:
-        fx = fy = factor
-    else:
-        raise Exception("type of f must be tuple or float")
-
-    return cv2.resize(image, (0, 0), fx=fx, fy=fy)
-
-
-def resize_by_size(image, size):
-    """ Resize image by given size
-        Arguments:
-            image: input image
-            size: the size at which the image being reized
-
-        Returns:
-            output image
-    """
-    return cv2.resize(image, size)
-
-
-def resize_to_receptive_field(image, receptive_field=256):
-    """Resize to the factor of the wanted receptive field.
-    Example: Image of size 1100-800 -> 1024-768
-    Arguments:
-        image: input iamge
-        receptive_field:
-    Returns:
-        resieed image
-    """
-    new_h, new_w = np.ceil(np.array(image.shape[:2]) / receptive_field).astype(
-        np.int32) * receptive_field
-    image = cv2.resize(image, (new_w, new_h))
-    return image
-
-
-def batch_ratio(preds, targets):
-    from fuzzywuzzy import fuzz
-    rt = []
-    for p, t in zip(preds, targets):
-        r = fuzz.ratio(p, t)
-        rt.append(r)
-    return np.mean(rt)
-
-
 def plot_images(images,
                 labels=None,
                 cls_true=None,
@@ -180,7 +58,7 @@ def plot_images(images,
                 max_w=1500,
                 out_file=None,
                 cmap='binary'):
-
+    import matplotlib.pyplot as plt
     if mxn is None:
         # n = max(max_w // max([img.shape[1] for img in images]), 1)
         n = int(np.sqrt(len(images)))
@@ -223,6 +101,7 @@ def show(inp, size=10, dpi=300, cmap='gray'):
         Input: either a path or image
     """
     # inp = mmcv.imread(inp)
+    import matplotlib.pyplot as plt
     if len(inp.shape) == 4:
         inp = inp[0]
     inp = np.squeeze(inp)
