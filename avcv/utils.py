@@ -212,7 +212,8 @@ def show_df(df, path_column=None, max_col_width=-1, height=512):
 
 
 def get_name(path):
-    return osp.basename(path).split('.')[0]
+    path = osp.basename(path).split('.')[:-1]
+    return '.'.join(path)
 
 
 def download_file_from_google_drive(id, destination):
