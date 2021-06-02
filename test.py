@@ -1,7 +1,7 @@
-import mmcv
+import time
 
-timer = mmcv.Timer()
-
+t1 = time.time()
 
 from avcv import *
-print(timer.since_last_check())
+t2 = time.time()-t1
+print(t2)

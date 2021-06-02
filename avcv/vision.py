@@ -96,7 +96,7 @@ def plot_images(images,
         plt.close()
 
 
-def show(inp, size=10, dpi=300, cmap='gray'):
+def show(inp, size=10, dpi=100, cmap='gray'):
     """
         Input: either a path or image
     """
