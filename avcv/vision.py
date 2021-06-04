@@ -96,7 +96,7 @@ def plot_images(images,
         plt.close()
 
 
-def show(inp, size=10, dpi=300, cmap='gray'):
+def show(inp, size=10, dpi=300, cmap='gray', out_file=None):
     """
         Input: either a path or image
     """
@@ -112,7 +112,10 @@ def show(inp, size=10, dpi=300, cmap='gray'):
         size = max(5, inp.shape[1] // 65)
     plt.figure(figsize=(size, size), dpi=dpi)
     plt.imshow(inp, cmap=cmap)
-    plt.show()
+    if out_file is None:
+        plt.show()
+    else:
+        plt.savefig(out_file)
 
 
 def find_contours(thresh):
