@@ -96,11 +96,7 @@ def plot_images(images,
         plt.close()
 
 
-<<<<<<< HEAD
 def show(inp, size=10, dpi=300, cmap='gray', out_file=None):
-=======
-def show(inp, size=10, dpi=100, cmap='gray'):
->>>>>>> 091637b4d5639c21e023858d097e9b41784b50e7
     """
         Input: either a path or image
     """
