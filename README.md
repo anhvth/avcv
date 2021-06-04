@@ -1,8 +1,6 @@
 # Instalation
 ```
 pip install git+https://github.com/anhvth/avcv.git
-```
-```
 git clone https://github.com/anhvth/avcv.git ~/avcv && pip install -e ~/avcv
 ```
 # Usage
