@@ -309,6 +309,7 @@ def gt_to_color_mask(gt, mask=None,palette=None):
     return mask
 
 def vis_ids_to_segmask(input_dir, output_dir, palete=None):
+    import mmcv
     paths = au.get_paths(input_dir, 'png')
     def fun(path_in_out):    
         path, output_dir = path_in_out
