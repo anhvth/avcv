@@ -3,12 +3,6 @@ import mmcv
 from .utils import get_name, mkdir, osp, os
 
 
-# @memoize
-# def get_file(filename):
-    
-#     return 
-
-
 
 
 class Config(mmcv.Config):

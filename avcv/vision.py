@@ -1,14 +1,11 @@
 import os
-
 import cv2
-# import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 import os.path as osp
-
 from avcv import utils as au
+import mmcv
 # try:
-#     import mmcv
 # except:
 #     mmcv = None
 
