@@ -75,10 +75,14 @@ def read_json(path):
     return data
 
 
-def multi_process(fn, array_inputs, max_workers=4):
+def multi_process(fn, array_inputs, max_workers=4, verbose=True):
     print(f"Multi-Process: {max_workers} workers")
     with Pool(max_workers) as p:
-        r = list(tqdm(p.imap(fn, array_inputs), total=len(array_inputs)))
+        if verbose:
+            r = list(tqdm(p.imap(fn, array_inputs), total=len(array_inputs)))
+        else:
+            r = list(p.imap(fn, array_inputs))
+
     return r
 
 

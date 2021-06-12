@@ -308,6 +308,7 @@ def gt_to_color_mask(gt, mask=None,palette=None):
 def vis_ids_to_segmask(input_dir, output_dir, palete=None):
     import mmcv
     paths = au.get_paths(input_dir, 'png')
+    import mmcv
     def fun(path_in_out):    
         path, output_dir = path_in_out
         gt = mmcv.imread(path, cv2.IMREAD_UNCHANGED)
