@@ -73,7 +73,7 @@ def parse_requirements(fname='requirements.txt', with_version=True):
     return packages
 
 setup(name='avcv',#anh vo computer vision
-      version='1.2',
+      version='1.2.1',
       description='A package for unet models',
       url='https://github.com/anhvth/avcv.git',
       author='Anh Vo Tran Hai',
