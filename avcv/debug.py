@@ -43,6 +43,7 @@ def debug_make_mini_dataset(json_path, image_prefix, out_dir, n=1000, file_name=
     with open(out_json, "w") as f:
         json.dump(j, f)
     print(out_json)
+    return os.path.abspath(out_json)
 
 
 def vsl(image_or_tensor, order="bhwc", normalize=True, out_file='cache/vsl.jpg'):
