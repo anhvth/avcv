@@ -5,44 +5,6 @@ from tqdm import tqdm
 import os.path as osp
 from avcv import utils as au
 import mmcv
-# try:
-# except:
-#     mmcv = None
-
-
-def get_min_rect(c, resize_ratio):
-    """input a contour and return the min box of it"""
-    rect = cv2.minAreaRect(c)
-    box = cv2.boxPoints(rect)
-    box = np.int0(box)
-    box = (box / resize_ratio).astype(np.int32)
-    return box
-
-
-def get_skeleton(img, line_size):
-    """ Get skeleton mask of a binary image 
-        Arguments:
-            img: input image 2d
-        Returns:
-            binnary mask skeleton
-    """
-
-    element = cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))
-    size = np.size(img)
-    done = False
-    while not done:
-        eroded = cv2.erode(img, element)
-        temp = cv2.dilate(eroded, element)
-        temp = cv2.subtract(img, temp)
-        skeleton = cv2.bitwise_or(skeleton, temp)
-        img = eroded.copy()
-        zeros = size - cv2.countNonZero(img)
-        if zeros == size:
-            done = True
-    kernel = np.ones(shape=[line_size, line_size])
-    _ = cv2.dilate(skeleton, kernel, iterations=1)
-    return _
-
 
 def plot_images(images,
                 labels=None,
@@ -162,37 +124,6 @@ def torch_tensor_to_image(tensor, cdim=1):
     return np_array.astype('uint8')
 
 
-# def visualize_torch_tensor(input_tensor, normalize=True, output_path=None, input_type='onehot'):
-#     import torch
-
-#     if isinstance(input_tensor, torch.Tensor):
-#         input_tensor = input_tensor.detach().cpu().numpy()
-#         if len(np.unique(input_tensor)) == 2:
-#             normalize = False
-#     # if none save in cache
-#     if output_path is None:
-#         os.makedirs('cache', exist_ok=True)
-#         output_path = 'cache/temp.jpg'
-#     if normalize:
-#         input_tensor = (input_tensor-input_tensor.min())/(input_tensor.max()-input_tensor.min())
-#         input_tensor *= 255
-
-#     if input_type == 'onehot':
-#         c,h,w = input_tensor.shape
-#         color = np.random.choice(256, (c, 3))
-#         color_tensor = input_tensor[:,None,:,:]*color[:,:,None,None]
-#         out_tensor = np.zeros([h, w, 3], color_tensor.dtype)
-#         for i in range(c):
-#             out_tensor += np.transpose(color_tensor[i], [1,2,0])
-#         out_tensor = out_tensor *255 /out_tensor.max()
-#     elif input_type=='image':
-#         out_tensor = np.transpose(input_tensor, [1,2,0])
-#     else:
-#         raise NotImplemented
-#     cv2.imwrite(output_path, out_tensor)
-#     print('out-> :', output_path)
-
-
 def images_to_video(images, out_path, fps=30, sort=True, max_num_frame=10e12, with_text=False):
     fps = int(fps)
     max_num_frame = int(max_num_frame)
@@ -225,12 +156,8 @@ def images_to_video(images, out_path, fps=30, sort=True, max_num_frame=10e12, wi
             img = img_or_path
         return img
 
-    # img_array = au.multi_thread(f, images, verbose=True)
     if sort and isinstance(images[0], str):
         images = list(sorted(images, key=get_num))
-    # imgs = au.multi_thread(f, images[:max_num_frame], verbose=True)  #[mmcv.imread(path) for path in tqdm(images)]
-    # [mmcv.imread(path) for path in tqdm(images)]
-    # imgs = au.multi_process(f, images[:max_num_frame], 16)
 
     h, w = mmcv.imread(images[0]).shape[:2]
     size = (w, h)
