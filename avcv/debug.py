@@ -11,6 +11,7 @@ import numpy as np
 def debug_make_mini_dataset(json_path, image_prefix, out_dir, n=1000, file_name=None):
     new_img_prefix = osp.join(out_dir, "images")
     from pycocotools.coco import COCO
+    mkdir(new_img_prefix)
     out_json = os.path.join(out_dir, "annotations", "mini_json.json")
     if not osp.exists(out_json):
         print("Making mini dataset", out_dir, "num images:", n)
@@ -30,6 +31,10 @@ def debug_make_mini_dataset(json_path, image_prefix, out_dir, n=1000, file_name=
             categories=coco.dataset['categories'],
             
         )
+        for img in imgs:
+            path = osp.join(image_prefix, img['file_name'])
+            new_path = osp.join(new_img_prefix, img['file_name'])
+            shutil.copy(path, new_path)
 
         with open(out_json, "w") as f:
             json.dump(out_dict, f)
