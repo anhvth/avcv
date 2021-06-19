@@ -25,6 +25,9 @@ def debug_make_mini_dataset(json_path, image_prefix, out_dir, n=1000, file_name=
         imgs = coco.loadImgs(selected_img_ids)
         selected_ann_ids = coco.getAnnIds(selected_img_ids)
         anns = coco.loadAnns(selected_ann_ids)
+        for i, ann in enumerate(anns):
+            ann['iscrowd'] = False
+            anns[i] = ann
         out_dict = dict(
             images = imgs,
             annotations=anns,
