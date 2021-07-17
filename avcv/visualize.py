@@ -5,6 +5,7 @@ __all__ = ['plot_images']
 # Cell
 import matplotlib.pyplot as plt
 import numpy as np
+
 def plot_images(images,
                 labels=None,
                 cls_true=None,
