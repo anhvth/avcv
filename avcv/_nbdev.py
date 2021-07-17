@@ -4,7 +4,7 @@ __all__ = ["index", "modules", "custom_doc_links", "git_url"]
 
 index = {"plot_images": "00_vision.ipynb"}
 
-modules = ["core.py"]
+modules = ["visualize.py"]
 
 doc_url = "https://anhvth.github.io/avcv/"
 

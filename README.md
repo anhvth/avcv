@@ -1,5 +1,45 @@
-# nbdev template
+# AVCV
+> Summary description here.
 
-Use this template to more easily create your [nbdev](https://nbdev.fast.ai/) project.
 
-_If you are using an older version of this template, and want to upgrade to the theme-based version, see [this helper script](https://gist.github.com/hamelsmu/977e82a23dcd8dcff9058079cb4a8f18) (more explanation of what this means is contained in the link to the script)_.
+This file will become your README and also the index of your documentation.
+
+## Install
+
+`pip install avcv`
+
+## How to use
+
+Fill me in please! Don't forget code examples:
+
+```python
+from avcv.plot_images import plot_images
+from glob import glob
+import numpy as np
+import mmcv
+paths = glob('/data/synthetic/SHARE_SVA_DATASET/val/000/frames/*')
+imgs = [mmcv.imread(path, channel_order='rgb') for path in np.random.choice(paths, 10)]
+plot_images(imgs)
+plot_images(images)
+```
+
+    (3, 3)
+
+
+
+![png](docs/images/output_5_1.png)
+
+
+
+    ---------------------------------------------------------------------------
+
+    NameError                                 Traceback (most recent call last)
+
+    <ipython-input-5-b253384b4c57> in <module>
+          6 imgs = [mmcv.imread(path, channel_order='rgb') for path in np.random.choice(paths, 10)]
+          7 plot_images(imgs)
+    ----> 8 plot_images(images)
+    
+
+    NameError: name 'images' is not defined
+
