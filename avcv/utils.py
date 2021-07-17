@@ -9,8 +9,13 @@ import os
 import mmcv
 import cv2
 from tqdm import tqdm
+from fastcore.script import call_parse, Param
 
-def images_to_video(images, out_path, fps=30, sort=True, max_num_frame=10e12, with_text=False):
+@call_parse
+def images_to_video(
+    images:Param("Path to the images folder or list of images", any),
+    out_path:Param("Output path", str),
+    fps=30, sort=True, max_num_frame=10e12, with_text=False):
     fps = int(fps)
 
     sort = bool(sort)
