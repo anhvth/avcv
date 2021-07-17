@@ -2,7 +2,10 @@
 SHELL := /bin/bash
 SRC = $(wildcard ./*.ipynb)
 
-all: avcv docs
+all: build
+
+build: 
+	nbdev_build_lib && nbdev_build_docs
 
 avcv: $(SRC)
 	nbdev_build_lib
