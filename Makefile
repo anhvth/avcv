@@ -4,7 +4,7 @@ SRC = $(wildcard ./*.ipynb)
 
 all: build
 
-git: docs	
+git: docs avcv
 	git add -A && git commit -v && git push
 
 build: 
