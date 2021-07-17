@@ -2,12 +2,12 @@
 > Optimized functions for vision problems
 
 
-```python
+```
 %load_ext autoreload
 %autoreload 2
 ```
 
-```python
+```
 from nbdev.showdoc import *
 ```
 
@@ -29,7 +29,7 @@ This file will become your README and also the index of your documentation.
 
 ### Plot images
 
-```python
+```
 from avcv.plot_images import plot_images
 from glob import glob
 import numpy as np
@@ -56,26 +56,34 @@ plot_images(imgs)
 
 
 
-```python
+```
 # example
 from glob import glob
 import mmcv
 import numpy as np
 from avcv.process import multi_thread
+from tqdm import tqdm
 
 paths = glob('/data/synthetic/SHARE_SVA_DATASET/val/000/frames/*')
 def f(x):
-    return mmcv.imread(x, channel_order='rgb')
-inputs = np.random.choice(paths, 1000)
+    mmcv.imread(x, channel_order='rgb')
+    return None
+inputs = np.random.choice(paths, 100)
 fast_imgs = multi_thread(f, inputs)
-slow_imgs = [f(_) for _ in inputs]
+
 ```
 
-    Multi-thread Pipeline: 100%|██████████| 1000/1000 [00:04<00:00, 201.27Samples/s]
+    Multi-thread Pipeline: 100%|██████████| 100/100 [00:00<00:00, 261.36Samples/s]
 
     Finished
-    1000
 
 
     
+
+
+```
+slow_imgs = [f(_) for _ in tqdm(inputs)]
+```
+
+    100%|██████████| 100/100 [00:02<00:00, 49.02it/s]
 
