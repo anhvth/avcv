@@ -12,3 +12,4 @@ pyson/.ipynb_checkpoints/unet-checkpoint.py
 **/.ipynb_checkpoints/*
 build
 dist/
+__pycache__

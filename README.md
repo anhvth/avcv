@@ -1,5 +1,5 @@
 # AVCV
-> Summary description here.
+> Optimized functions for vision problems
 
 
 ```python
@@ -19,7 +19,13 @@ This file will become your README and also the index of your documentation.
 
 ## How to use
 
-Fill me in please! Don't forget code examples:
+
+<h4 id="plot_images" class="doc_header"><code>plot_images</code><a href="https://github.com/anhvth/avcv/tree/main/avcv/visualize.py#L9" class="source_link" style="float:right">[source]</a></h4>
+
+> <code>plot_images</code>(**`images`**, **`labels`**=*`None`*, **`cls_true`**=*`None`*, **`cls_pred`**=*`None`*, **`space`**=*`(0.3, 0.3)`*, **`mxn`**=*`None`*, **`size`**=*`(5, 5)`*, **`dpi`**=*`300`*, **`max_w`**=*`1500`*, **`out_file`**=*`None`*, **`cmap`**=*`'binary'`*)
+
+
+
 
 ### Plot images
 
@@ -45,24 +51,31 @@ plot_images(imgs)
 
 <h4 id="multi_thread" class="doc_header"><code>multi_thread</code><a href="https://github.com/anhvth/avcv/tree/main/avcv/process.py#L6" class="source_link" style="float:right">[source]</a></h4>
 
-> <code>multi_thread</code>(**`fn`**, **`array_inputs`**, **`max_workers`**=*`None`*, **`desc`**=*`'Multi-thread Pipeline'`*, **`unit`**=*`' Samples'`*, **`verbose`**=*`False`*)
+> <code>multi_thread</code>(**`fn`**, **`array_inputs`**, **`max_workers`**=*`None`*, **`desc`**=*`'Multi-thread Pipeline'`*, **`unit`**=*`'Samples'`*, **`verbose`**=*`True`*)
 
 
 
 
 ```python
+# example
 from glob import glob
 import mmcv
 import numpy as np
-
+from avcv.process import multi_thread
 
 paths = glob('/data/synthetic/SHARE_SVA_DATASET/val/000/frames/*')
 def f(x):
     return mmcv.imread(x, channel_order='rgb')
-
-imgs = multi_thread(f, np.random.choice(paths, 100))
-print(len(imgs))
+inputs = np.random.choice(paths, 1000)
+fast_imgs = multi_thread(f, inputs)
+slow_imgs = [f(_) for _ in inputs]
 ```
 
-    100
+    Multi-thread Pipeline: 100%|██████████| 1000/1000 [00:04<00:00, 201.27Samples/s]
+
+    Finished
+    1000
+
+
+    
 
