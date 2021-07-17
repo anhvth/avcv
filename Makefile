@@ -4,6 +4,9 @@ SRC = $(wildcard ./*.ipynb)
 
 all: build
 
+git: docs	
+	git add -A && git commit -v && git push
+
 build: 
 	nbdev_build_lib && nbdev_build_docs
 
@@ -17,9 +20,8 @@ sync:
 docs_serve: docs
 	cd docs && bundle exec jekyll serve
 
-docs: $(SRC)
-	nbdev_build_docs
-	touch docs
+docs:
+	nbdev_clean_nbs && nbdev_build_docs
 
 test:
 	nbdev_test_nbs
