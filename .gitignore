@@ -13,3 +13,4 @@ pyson/.ipynb_checkpoints/unet-checkpoint.py
 build
 dist/
 __pycache__
+conda
