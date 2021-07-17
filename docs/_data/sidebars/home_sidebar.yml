@@ -11,7 +11,7 @@ entries:
       url: /
     - output: web,pdf
       title: Visualize
-      url: vision.html
+      url: visualize.html
     - output: web,pdf
       title: Multithreading
       url: process.html

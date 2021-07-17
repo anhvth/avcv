@@ -1,7 +1,7 @@
 {
   "avcv": {
     "Overview": "/",
-    "Visualize": "vision.html",
+    "Visualize": "visualize.html",
     "Multithreading": "process.html"
   }
 }

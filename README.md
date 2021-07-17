@@ -30,7 +30,7 @@ This file will become your README and also the index of your documentation.
 ### Plot images
 
 ```python
-from avcv.plot_images import plot_images
+from avcv.visualize import plot_images
 from glob import glob
 import numpy as np
 import mmcv
@@ -39,24 +39,25 @@ imgs = [mmcv.imread(path, channel_order='rgb') for path in np.random.choice(path
 plot_images(imgs)
 ```
 
-    (3, 3)
+
+    ---------------------------------------------------------------------------
+
+    ModuleNotFoundError                       Traceback (most recent call last)
+
+    <ipython-input-4-c232fb9b8e39> in <module>
+    ----> 1 from avcv.plot_images import plot_images
+          2 from glob import glob
+          3 import numpy as np
+          4 import mmcv
+          5 paths = glob('/data/synthetic/SHARE_SVA_DATASET/val/000/frames/*')
 
 
-
-![png](docs/images/output_8_1.png)
+    ModuleNotFoundError: No module named 'avcv.plot_images'
 
 
 ### Multi thread
 
 Elementwise multithreading a given function, the results are store in an array coresponding to the inputs
-
-
-<h4 id="multi_thread" class="doc_header"><code>multi_thread</code><a href="https://github.com/anhvth/avcv/tree/main/avcv/process.py#L6" class="source_link" style="float:right">[source]</a></h4>
-
-> <code>multi_thread</code>(**`fn`**, **`array_inputs`**, **`max_workers`**=*`None`*, **`desc`**=*`'Multi-thread Pipeline'`*, **`unit`**=*`'Samples'`*, **`verbose`**=*`True`*)
-
-
-
 
 ```python
 # example
@@ -75,17 +76,6 @@ inputs = np.random.choice(paths, 100)
 fast_imgs = multi_thread(f, inputs)
 ```
 
-    Multi-thread Pipeline: 100%|██████████| 100/100 [00:00<00:00, 261.36Samples/s]
-
-    Finished
-
-
-    
-
-
 ```python
 slow_imgs = [f(_) for _ in tqdm(inputs)]
 ```
-
-    100%|██████████| 100/100 [00:02<00:00, 49.02it/s]
-
