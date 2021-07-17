@@ -175,6 +175,13 @@ nb_path: "index.ipynb"
 </div>
 </div>
 </div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Elementwise multithreading a given function, the results are store in an array coresponding to the inputs</p>
+
+</div>
+</div>
+</div>
     {% raw %}
     
 <div class="cell border-box-sizing code_cell rendered">
@@ -216,6 +223,7 @@ nb_path: "index.ipynb"
 <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
     <span class="n">mmcv</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">channel_order</span><span class="o">=</span><span class="s1">&#39;rgb&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="kc">None</span>
+
 <span class="n">inputs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">paths</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
 <span class="n">fast_imgs</span> <span class="o">=</span> <span class="n">multi_thread</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">inputs</span><span class="p">)</span>
 </pre></div>
