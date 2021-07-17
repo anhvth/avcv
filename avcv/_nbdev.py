@@ -9,7 +9,8 @@ index = {"plot_images": "00_visualize.ipynb",
          "mkdir": "03_utils.ipynb",
          "put_text": "03_utils.ipynb",
          "images_to_video": "03_utils.ipynb",
-         "get_paths": "03_utils.ipynb"}
+         "get_paths": "03_utils.ipynb",
+         "video_to_images": "03_utils.ipynb"}
 
 modules = ["visualize.py",
            "process.py",
