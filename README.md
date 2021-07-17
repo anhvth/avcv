@@ -2,7 +2,7 @@
 > Optimized functions for vision problems
 
 
-Docs: https://anhvth.github.io/avcv/
+This file will become your README and also the index of your documentation.
 
 ## Install
 
