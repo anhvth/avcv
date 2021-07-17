@@ -84,4 +84,3 @@ def get_paths(directory, input_type='png', sort=True):
         paths = list(sorted(paths))
     print('Found and sorted {} files {}'.format(len(paths), input_type))
     return paths
-
