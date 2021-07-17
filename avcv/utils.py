@@ -13,13 +13,12 @@ from fastcore.script import call_parse, Param
 
 @call_parse
 def images_to_video(
-    images:Param("Path to the images folder or list of images", any),
+    images:Param("Path to the images folder or list of images"),
     out_path:Param("Output output video path", str),
     fps:Param("Frame per second", int)=30,
     sort:Param("Sort images", bool)=True,
     max_num_frame:Param("Max num of frame", int)=10e12,
     with_text:Param("Add additional index to image when writing vidoe", bool)=False):
-    fps = int(fps)
 
     sort = bool(sort)
     if isinstance(images, str) and os.path.isdir(images):
@@ -48,7 +47,6 @@ def images_to_video(
         else:
             img = img_or_path
         return img
-
     if sort and isinstance(images[0], str):
         images = list(sorted(images, key=get_num))
 
