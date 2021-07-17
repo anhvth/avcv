@@ -2,9 +2,11 @@
 
 __all__ = ["index", "modules", "custom_doc_links", "git_url"]
 
-index = {"plot_images": "00_visualize.ipynb"}
+index = {"plot_images": "00_visualize.ipynb",
+         "multi_thread": "01_process.ipynb"}
 
-modules = ["visualize.py"]
+modules = ["visualize.py",
+           "process.py"]
 
 doc_url = "https://anhvth.github.io/avcv/"
 
