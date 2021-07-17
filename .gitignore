@@ -14,3 +14,4 @@ build
 dist/
 __pycache__
 conda
+*.mp4
