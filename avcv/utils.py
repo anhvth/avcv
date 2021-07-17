@@ -13,7 +13,7 @@ from fastcore.script import call_parse, Param
 
 @call_parse
 def images_to_video(
-    images:Param("Path to the images folder or list of images", str),
+    images:Param("Path to the images folder or list of images", any),
     out_path:Param("Output output video path", str),
     fps:Param("Frame per second", int)=30,
     sort:Param("Sort images", bool)=True,
