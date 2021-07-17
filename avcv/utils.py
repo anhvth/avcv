@@ -52,6 +52,7 @@ def download_file_from_google_drive(id_or_link:Param("Link or file id"), destina
 
     save_response_content(response, destination)
     print("Done ->", destination)
+    return osp.abspath(destination)
 
 
 def mkdir(path):
