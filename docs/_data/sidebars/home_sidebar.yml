@@ -18,6 +18,9 @@ entries:
     - output: web,pdf
       title: Utils
       url: utils.html
+    - output: web,pdf
+      title: DEBUG
+      url: debug.html
     output: web
     title: avcv
   output: web

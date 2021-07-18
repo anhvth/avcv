@@ -10,11 +10,13 @@ index = {"plot_images": "00_visualize.ipynb",
          "put_text": "03_utils.ipynb",
          "images_to_video": "03_utils.ipynb",
          "get_paths": "03_utils.ipynb",
-         "video_to_images": "03_utils.ipynb"}
+         "video_to_images": "03_utils.ipynb",
+         "make_mini_coco": "04_debug.ipynb"}
 
 modules = ["visualize.py",
            "process.py",
-           "utils.py"]
+           "utils.py",
+           "debug.py"]
 
 doc_url = "https://anhvth.github.io/avcv/"
 

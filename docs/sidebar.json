@@ -3,6 +3,7 @@
     "Overview": "/",
     "Visualize": "visualize.html",
     "Multithreading": "process.html",
-    "Utils": "utils.html"
+    "Utils": "utils.html",
+    "DEBUG": "debug.html"
   }
 }
