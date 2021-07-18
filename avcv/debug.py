@@ -17,7 +17,7 @@ import shutil
 def make_mini_coco(json_path: Param(),
                    image_prefix: Param(),
                    out_dir: Param(),
-                   n: Param() = 1000):
+                   num_samples: Param("Num of sample",type=int) = 1000):
     """
         Helper function for creating a mini-dataset ensembles it's father
     """

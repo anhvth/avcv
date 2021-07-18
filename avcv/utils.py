@@ -12,12 +12,14 @@ import os.path as osp
 from tqdm import tqdm
 from fastcore.script import call_parse, Param
 
+
 def get_name(path):
     path = osp.basename(path).split('.')[:-1]
     return '.'.join(path)
 
+
 @call_parse
-def download_file_from_google_drive(id_or_link:Param("Link or file id"), destination:Param("Path to the save file")):
+def download_file_from_google_drive(id_or_link: Param("Link or file id"), destination: Param("Path to the save file")):
     if "https" in id_or_link:
         x = id_or_link
         id = x.split("/")[x.split("/").index("d")+1]
@@ -25,6 +27,7 @@ def download_file_from_google_drive(id_or_link:Param("Link or file id"), destina
         id = id_or_link
     print("Download from id:", id)
     import requests
+
     def get_confirm_token(response):
         for key, value in response.cookies.items():
             if key.startswith('download_warning'):
@@ -59,18 +62,20 @@ def download_file_from_google_drive(id_or_link:Param("Link or file id"), destina
 def mkdir(path):
     os.makedirs(path, exist_ok=True)
 
+
 def put_text(image, pos, text, color=(255, 255, 255)):
     return cv2.putText(image, text, pos, cv2.FONT_HERSHEY_SIMPLEX, 1.0,
                        color, 2)
 
+
 @call_parse
 def images_to_video(
-    images:Param("Path to the images folder or list of images"),
-    out_path:Param("Output output video path", str),
-    fps:Param("Frame per second", int)=30,
-    sort:Param("Sort images", bool)=True,
-    max_num_frame:Param("Max num of frame", int)=10e12,
-    with_text:Param("Add additional index to image when writing vidoe", bool)=False):
+        images: Param("Path to the images folder or list of images"),
+        out_path: Param("Output output video path", str),
+        fps: Param("Frame per second", int) = 30,
+        sort: Param("Sort images", bool) = True,
+        max_num_frame: Param("Max num of frame", int) = 10e12,
+        with_text: Param("Add additional index to image when writing vidoe", bool) = False):
     fps = int(fps)
 
     sort = bool(sort)
@@ -121,6 +126,7 @@ def images_to_video(
     out.release()
     print(out_path)
 
+
 def get_paths(directory, input_type='png', sort=True):
     """
         Get a list of input_type paths
@@ -132,6 +138,7 @@ def get_paths(directory, input_type='png', sort=True):
         paths = list(sorted(paths))
     print('Found and sorted {} files {}'.format(len(paths), input_type))
     return paths
+
 
 # Cell
 @call_parse
