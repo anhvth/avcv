@@ -5,6 +5,7 @@ __all__ = ["index", "modules", "custom_doc_links", "git_url"]
 index = {"plot_images": "00_visualize.ipynb",
          "multi_thread": "01_process.ipynb",
          "get_name": "03_utils.ipynb",
+         "find_contours": "03_utils.ipynb",
          "download_file_from_google_drive": "03_utils.ipynb",
          "mkdir": "03_utils.ipynb",
          "put_text": "03_utils.ipynb",
