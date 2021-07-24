@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import mmcv
 from fastcore.script import *
-from pycocotools.coco import COCO
 import shutil
 
 
@@ -21,6 +20,7 @@ def make_mini_coco(json_path: Param(),
     """
         Helper function for creating a mini-dataset ensembles it's father
     """
+    from pycocotools.coco import COCO
     new_img_prefix = osp.join(out_dir, "images")
 
     out_json = os.path.join(out_dir, "annotations", "mini_json.json")
