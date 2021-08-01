@@ -8,7 +8,7 @@ git: docs avcv
 	git add -A && git commit -v && git push
 
 build: 
-	nbdev_build_lib && nbdev_build_docs
+	nbdev_build_lib && pip install -e ./
 
 avcv: $(SRC)
 	nbdev_build_lib
@@ -40,3 +40,6 @@ dist: clean
 
 clean:
 	rm -rf dist
+
+lib:
+	nbdev_build_lib
