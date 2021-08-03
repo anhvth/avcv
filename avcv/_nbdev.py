@@ -4,6 +4,7 @@ __all__ = ["index", "modules", "custom_doc_links", "git_url"]
 
 index = {"plot_images": "00_visualize.ipynb",
          "show": "00_visualize.ipynb",
+         "tensor2imgs": "00_visualize.ipynb",
          "multi_thread": "01_process.ipynb",
          "get_name": "03_utils.ipynb",
          "find_contours": "03_utils.ipynb",
