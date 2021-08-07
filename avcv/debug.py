@@ -25,14 +25,14 @@ def make_mini_coco(json_path: Param(),
 
     out_json = os.path.join(out_dir, "annotations", "mini_json.json")
     if not osp.exists(out_json):
-        print("Making mini dataset", out_dir, "num images:", n)
+        print("Making mini dataset", out_dir, "num images:", num_samples)
         os.makedirs(os.path.join(out_dir, "images"), exist_ok=True)
         os.makedirs(os.path.join(out_dir, "annotations"), exist_ok=True)
         coco = COCO(json_path)
         # imgs = coco.imgs
         img_ids = list(coco.imgs.keys())
         np.random.seed(0)
-        selected_img_ids = np.random.choice(img_ids, n, replace=False)
+        selected_img_ids = np.random.choice(img_ids, num_samples, replace=False)
         imgs = coco.loadImgs(selected_img_ids)
         selected_ann_ids = coco.getAnnIds(selected_img_ids)
         anns = coco.loadAnns(selected_ann_ids)
