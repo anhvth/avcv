@@ -14,6 +14,7 @@ index = {"plot_images": "00_visualize.ipynb",
          "images_to_video": "03_utils.ipynb",
          "get_paths": "03_utils.ipynb",
          "video_to_images": "03_utils.ipynb",
+         "TimeLoger": "03_utils.ipynb",
          "make_mini_coco": "04_debug.ipynb",
          "dpython": "04_debug.ipynb"}
 
