@@ -18,7 +18,8 @@ index = {"plot_images": "00_visualize.ipynb",
          "identify": "03_utils.ipynb",
          "memoize": "03_utils.ipynb",
          "make_mini_coco": "04_debug.ipynb",
-         "dpython": "04_debug.ipynb"}
+         "dpython": "04_debug.ipynb",
+         "VisualizeCoco": "04_debug.ipynb"}
 
 modules = ["visualize.py",
            "process.py",
