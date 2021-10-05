@@ -17,6 +17,8 @@ index = {"plot_images": "00_visualize.ipynb",
          "TimeLoger": "03_utils.ipynb",
          "identify": "03_utils.ipynb",
          "memoize": "03_utils.ipynb",
+         "unzip_member_f3": "03_utils.ipynb",
+         "unzip": "03_utils.ipynb",
          "make_mini_coco": "04_debug.ipynb",
          "dpython": "04_debug.ipynb"}
 
