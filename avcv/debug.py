@@ -141,5 +141,3 @@ class VisualizeCoco:
         img = mmcv.imread(self.img_dir+im['file_name'], channel_order='rgb')
         img = mmcv.visualization.imshow_det_bboxes(img, det_bboxes, lables, CLASSES, show=False)
         return img
-
-    def
