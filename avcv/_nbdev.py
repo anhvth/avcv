@@ -17,15 +17,19 @@ index = {"plot_images": "00_visualize.ipynb",
          "TimeLoger": "03_utils.ipynb",
          "identify": "03_utils.ipynb",
          "memoize": "03_utils.ipynb",
-         "unzip_member_f3": "03_utils.ipynb",
-         "unzip": "03_utils.ipynb",
          "make_mini_coco": "04_debug.ipynb",
-         "dpython": "04_debug.ipynb"}
+         "dpython": "04_debug.ipynb",
+         "AvCOCO": "05_coco_dataset.ipynb",
+         "CocoDataset": "05_coco_dataset.ipynb",
+         "get_bboxes": "05_coco_dataset.ipynb",
+         "get_overlap_rate": "05_coco_dataset.ipynb",
+         "DiagnoseCoco": "05_coco_dataset.ipynb"}
 
 modules = ["visualize.py",
            "process.py",
            "utils.py",
-           "debug.py"]
+           "debug.py",
+           "coco.py"]
 
 doc_url = "https://anhvth.github.io/avcv/"
 
