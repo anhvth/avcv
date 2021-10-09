@@ -157,7 +157,6 @@ def get_paths(directory, input_type='png', sort=True):
     print('Found and sorted {} files {}'.format(len(paths), input_type))
     return paths
 
-
 # Cell
 @call_parse
 def video_to_images(input_video:Param("", str), output_dir:Param("", str), skip:Param("", int)=1):
@@ -257,4 +256,3 @@ def memoize(func):
         except (KeyError, AttributeError, TypeError):
             return func(*args, **kwargs)
     return memoized_func
-

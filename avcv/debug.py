@@ -54,7 +54,6 @@ def make_mini_coco(json_path: Param(),
     print(out_json, new_img_prefix)
     return out_json, new_img_prefix
 
-
 # Cell
 @call_parse
 def dpython(cmd: Param(type=str)):
@@ -94,4 +93,3 @@ def dpython(cmd: Param(type=str)):
 #     with open(, 'w') as f:
 #         mmcv.dump(lauch, f, indent=4)
         mmcv.dump(lauch, '.vscode/launch.json')
-

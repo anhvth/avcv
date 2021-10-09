@@ -24,6 +24,7 @@ from .visualize import show as av_show
 
 # Cell
 
+
 # export
 
 
@@ -129,9 +130,6 @@ class CocoDataset:
         cocoEval.accumulate()
         cocoEval.summarize()
 
-
-
-
 # Cell
 def get_bboxes(anns, mode='xywh', dtype=None, score_thr=None):
     bboxes = []
@@ -159,8 +157,6 @@ def get_overlap_rate(boxA, boxB):
     boxAArea = (boxA[2] - boxA[0] + 1) * (boxA[3] - boxA[1] + 1)
     iou = interArea / float(boxAArea)
     return iou
-
-
 
 # Cell
 class DiagnoseCoco(CocoDataset):
@@ -194,5 +190,3 @@ class DiagnoseCoco(CocoDataset):
             vis_img = vis_img[...,::-1].copy()
             result['vis_img'] = vis_img
         return result
-
-
