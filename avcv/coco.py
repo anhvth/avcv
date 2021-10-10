@@ -161,32 +161,44 @@ def get_overlap_rate(boxA, boxB):
 # Cell
 class DiagnoseCoco(CocoDataset):
     COLORS = dict(
-        FN='red',
-        FP='yellow',
+        FN='red', # Undetected GT
+        FP='yellow', # Wrong detection
     )
 
     def find_false_samples(self, img_id, score_thr=0.05, visualize=True):
         assert self.gt is not None
         assert self.pred is not None
-        pred_anns = self.pred.loadAnns(self.pred.getAnnIds(img_id))
+        pred_anns = [ann for ann in self.pred.loadAnns(self.pred.getAnnIds(img_id)) if ann['score']>score_thr]
         gt_anns = self.gt.loadAnns(self.gt.getAnnIds(img_id))
 
-        pred_bboxes = get_bboxes(pred_anns, score_thr=score_thr, mode='xyxy')
+        pred_bboxes = get_bboxes(pred_anns, mode='xyxy')
         pred_bboxes = torch.from_numpy(pred_bboxes).cuda().float()
 
         gt_bboxes = get_bboxes(gt_anns, mode='xyxy')
         gt_bboxes = torch.from_numpy(gt_bboxes).cuda().float()
         with torch.no_grad():
             ious = bbox_overlaps(pred_bboxes, gt_bboxes).cpu().numpy()
+        mapping_gt_pred = np.where(ious>0)
 
-        fn_anns = [gt_anns[i] for i, m in enumerate((ious > 0.5).sum(0)) if m == 0]
-        fp_anns = [pred_anns[i] for i, m in enumerate((ious > 0.5).sum(1)) if m == 0]
-        tp_anns = [ann for ann in gt_anns if not ann in fn_anns]
-        result = dict(fn=fn_anns, fp=fp_anns, tp = tp_anns)
+        result = dict(tp=[], fn=[], fp=[])
+
+        gt_ids = list(range(len(gt_anns)))
+        pred_ids = list(range(len(pred_anns)))
+        for pred_id, gt_id in zip(*mapping_gt_pred):
+            if gt_anns[gt_id]['category_id'] == pred_anns[pred_id]['category_id']:
+                result['tp'].append(pred_anns[pred_id])
+                if gt_id in gt_ids:
+                    gt_ids.remove(gt_id)
+                if pred_id in pred_ids:
+                    pred_ids.remove(pred_id)
+
+
+        result['fp'] = [pred_anns[i] for i in  pred_ids]
+        result['fn'] = [gt_anns[i] for i in gt_ids]
         if visualize:
-            vis_img = self.visualize(img_id, anns=fn_anns, color=self.COLORS['FN'], show=False)
-            vis_img = self.visualize(img_id,  anns=tp_anns,img=vis_img, show=False,)
-            vis_img = self.visualize(img_id, anns=fp_anns, dpi=150,color=self.COLORS['FP'], show=False, img=vis_img)
+            vis_img = self.visualize(img_id, anns=result['fn'], color=self.COLORS['FN'], show=False)
+            vis_img = self.visualize(img_id,  anns=result['tp'],img=vis_img, show=False,)
+            vis_img = self.visualize(img_id, anns=result['fp'], dpi=150,color=self.COLORS['FP'], show=False, img=vis_img)
             vis_img = vis_img[...,::-1].copy()
             result['vis_img'] = vis_img
         return result
