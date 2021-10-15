@@ -16,17 +16,13 @@ def multi_thread(fn, array_inputs, max_workers=None, desc="Multi-thread Pipeline
 
     array_inputs = [(i, _) for i, _ in enumerate(array_inputs)]
     if verbose:
-        with tqdm(total=len(array_inputs), desc=desc, unit=unit) as progress_bar:
-            outputs = {}
-            with ThreadPoolExecutor(max_workers=max_workers) as executor:
-                for result in executor.map(_wraper, array_inputs):
-                    outputs.update(result)
-                    progress_bar.update(1)
-    else:
-        outputs = {}
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            for result in executor.map(_wraper, array_inputs):
-                outputs.update(result)
+        progress_bar = mmcv.utils.ProgressBar(len(array_inputs))
+    outputs = {}
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        for result in executor.map(_wraper, array_inputs):
+            outputs.update(result)
+            if verbose:
+                progress_bar.update()
     if verbose:
         print('Finished')
     outputs = list(outputs.values())
