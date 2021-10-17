@@ -10,8 +10,9 @@ import os
 import cv2
 import os.path as osp
 from tqdm import tqdm
+import mmcv
 from fastcore.script import call_parse, Param
-
+from .process import *
 
 def get_name(path):
     path = osp.basename(path).split('.')[:-1]
@@ -91,16 +92,18 @@ def images_to_video(
         images: Param("Path to the images folder or list of images"),
         out_path: Param("Output output video path", str),
         fps: Param("Frame per second", int) = 30,
-        sort: Param("Sort images", bool) = True,
+        no_sort: Param("Sort images", bool) = False,
         max_num_frame: Param("Max num of frame", int) = 10e12,
-        with_text: Param("Add additional index to image when writing vidoe", bool) = False):
-    fps = int(fps)
+        resize_rate: Param("Resize rate", float) = 1,
+        with_text: Param("Add additional index to image when writing vidoe", bool) = False,
+        text_is_date: Param("Add additional index to image when writing vidoe", bool) = False):
 
-    sort = bool(sort)
+    fps = int(fps)
+    sort = bool(not no_sort)
     if isinstance(images, str) and os.path.isdir(images):
         from glob import glob
         images = glob(os.path.join(images, "*.jpg")) + \
-            glob(os.path.join(images, "*.png"))
+            glob(os.path.join(images, "*.png"))+glob(os.path.join(images, "*.jpeg"))
 
     imgs = []
 
@@ -111,19 +114,23 @@ def images_to_video(
         except:
             num = s
         return num
-    global f
-
     def f(img_or_path):
         if isinstance(img_or_path, str):
             name = os.path.basename(img_or_path)
             img = cv2.imread(img_or_path)
+            img = cv2.resize(img, output_size)
             assert img is not None, img_or_path
             if with_text:
-                # img = cv2.putText(img, name, )
+                if text_is_date:
+                    from datetime import datetime
+                    name = name.split('.')[0].split('_')
+                    f = float('{}.{}'.format(*name))
+                    name = str(datetime.fromtimestamp(f))
                 img = put_text(img, (20, 20), name)
         else:
             img = img_or_path
         return img
+
 
     if sort and isinstance(images[0], str):
         images = list(sorted(images, key=get_num))
@@ -132,18 +139,27 @@ def images_to_video(
     max_num_frame = min(len(images), max_num_frame)
 
     h, w = cv2.imread(images[0]).shape[:2]
-    size = (w, h)
-    out = cv2.VideoWriter(out_path, cv2.VideoWriter_fourcc(*'DIVX'), fps, size)
+    output_size = (int(w*resize_rate), int(h*resize_rate))
+    if out_path.endswith('.mp4'):
+        print('mp4')
+        out = cv2.VideoWriter(out_path, cv2.VideoWriter_fourcc(*'MP4V'), fps, output_size)
+    elif out_path.endswith('.avi'):
+        out = cv2.VideoWriter(out_path, cv2.VideoWriter_fourcc(*'DIVX'), fps, output_size)
+    else:
+        raise NotImplementedError
     images = images[:max_num_frame]
-    pbar = tqdm(range(len(images)))
-    for i in pbar:
-        img = f(images[i])
-        im = cv2.resize(img, size)
-        out.write(im)
+
+    images = multi_thread(f, images, desc='Reading images')
+    print("Write video")
+    pbar = mmcv.ProgressBar(len(images))
+    for img in images:
+        img = cv2.resize(img, output_size)
+        out.write(img)
+        pbar.update()
 
     out.release()
-    print(out_path)
 
+    print('\n',out_path, 'Video size: {:0.3f} MB, Image shape: {}'.format(os.path.getsize(out_path)/1024/1024, output_size))
 
 def get_paths(directory, input_type='png', sort=True):
     """

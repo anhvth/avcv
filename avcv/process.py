@@ -3,6 +3,7 @@
 __all__ = ['multi_thread']
 
 # Cell
+import mmcv
 def multi_thread(fn, array_inputs, max_workers=None, desc="Multi-thread Pipeline", unit="Samples", verbose=True):
     from concurrent.futures import ThreadPoolExecutor
     from functools import partial
