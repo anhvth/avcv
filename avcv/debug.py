@@ -90,6 +90,4 @@ def dpython(cmd: Param(type=str)):
             replace = True
     if not replace:
         lauch["configurations"] += [cfg]
-#     with open(, 'w') as f:
-#         mmcv.dump(lauch, f, indent=4)
         mmcv.dump(lauch, '.vscode/launch.json')

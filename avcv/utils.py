@@ -12,7 +12,7 @@ import os.path as osp
 from tqdm import tqdm
 import mmcv
 from fastcore.script import call_parse, Param
-from .process import *
+from .process import multi_thread
 
 def get_name(path):
     path = osp.basename(path).split('.')[:-1]
@@ -90,7 +90,7 @@ def put_text(image, pos, text, color=(255, 255, 255)):
 @call_parse
 def images_to_video(
         images: Param("Path to the images folder or list of images"),
-        out_path: Param("Output output video path", str),
+        out_path: Param("Output output video path", str)=None,
         fps: Param("Frame per second", int) = 30,
         no_sort: Param("Sort images", bool) = False,
         max_num_frame: Param("Max num of frame", int) = 10e12,
@@ -98,8 +98,9 @@ def images_to_video(
         with_text: Param("Add additional index to image when writing vidoe", bool) = False,
         text_is_date: Param("Add additional index to image when writing vidoe", bool) = False):
 
-    fps = int(fps)
-    sort = bool(not no_sort)
+    if out_path is None:
+        assert isinstance(images, str), "No out_path specify, you need to input a string to a directory"
+        out_path = images+'.mp4'
     if isinstance(images, str) and os.path.isdir(images):
         from glob import glob
         images = glob(os.path.join(images, "*.jpg")) + \
@@ -175,10 +176,15 @@ def get_paths(directory, input_type='png', sort=True):
 
 # Cell
 @call_parse
-def video_to_images(input_video:Param("", str), output_dir:Param("", str), skip:Param("", int)=1):
+def video_to_images(input_video:Param("", str), output_dir:Param("", str)=None, skip:Param("", int)=1):
     import cv2
     import os
+    import concurrent
     from imutils.video import count_frames
+    if output_dir is None:
+        output_dir = input_video.split('.')[0]
+        print('Set output_dir =',output_dir)
+
     skip = int(skip)
     # Read the video from specified path
     cam = cv2.VideoCapture(input_video)
@@ -187,18 +193,21 @@ def video_to_images(input_video:Param("", str), output_dir:Param("", str), skip:
     # frame
     currentframe = 0
     # while(True):
-    for current_frame in tqdm(range(0, total_frames, skip)):
-        # reading from frame
-        ret,frame = cam.read()
+    with concurrent.futures.ProcessPoolExecutor() as e:
+        f_results = []
+        for current_frame in range(0, total_frames, skip):
+            # reading from frame
+            ret,frame = cam.read()
 
-        if ret:
-            # if video is still left continue creating images
-            name =  os.path.join(output_dir,f'{current_frame:05d}' + '.jpg')
-            if currentframe % skip == 0:
-                cv2.imwrite(name, frame)
-        else:
-            break
-    # Release all space and windows once done
+            if ret:
+                # if video is still left continue creating images
+                name =  os.path.join(output_dir,f'{current_frame:05d}' + '.jpg')
+                if currentframe % skip == 0:
+                    f_results.append(e.submit(cv2.imwrite, name, frame))
+            else:
+                break
+        for result in tqdm(concurrent.futures.as_completed(f_results)):
+            pass
     cam.release()
     cv2.destroyAllWindows()
 

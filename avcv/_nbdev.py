@@ -23,7 +23,8 @@ index = {"plot_images": "00_visualize.ipynb",
          "CocoDataset": "05_coco_dataset.ipynb",
          "get_bboxes": "05_coco_dataset.ipynb",
          "get_overlap_rate": "05_coco_dataset.ipynb",
-         "DiagnoseCoco": "05_coco_dataset.ipynb"}
+         "DiagnoseCoco": "05_coco_dataset.ipynb",
+         "video_to_coco": "05_coco_dataset.ipynb"}
 
 modules = ["visualize.py",
            "process.py",
