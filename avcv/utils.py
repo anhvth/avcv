@@ -96,7 +96,9 @@ def images_to_video(
         max_num_frame: Param("Max num of frame", int) = 10e12,
         resize_rate: Param("Resize rate", float) = 1,
         with_text: Param("Add additional index to image when writing vidoe", bool) = False,
-        text_is_date: Param("Add additional index to image when writing vidoe", bool) = False):
+        text_is_date: Param("Add additional index to image when writing vidoe", bool) = False,
+        verbose:Param("Print...", bool)=True,
+        ):
 
     if out_path is None:
         assert isinstance(images, str), "No out_path specify, you need to input a string to a directory"
@@ -133,7 +135,7 @@ def images_to_video(
         return img
 
 
-    if sort and isinstance(images[0], str):
+    if not no_sort and isinstance(images[0], str):
         images = list(sorted(images, key=get_num))
 
     max_num_frame = int(max_num_frame)
@@ -142,25 +144,24 @@ def images_to_video(
     h, w = cv2.imread(images[0]).shape[:2]
     output_size = (int(w*resize_rate), int(h*resize_rate))
     if out_path.endswith('.mp4'):
-        print('mp4')
-        out = cv2.VideoWriter(out_path, cv2.VideoWriter_fourcc(*'MP4V'), fps, output_size)
+        fourcc = cv2.VideoWriter_fourcc(*'MP4V')
+        out = cv2.VideoWriter(out_path, fourcc, fps, output_size)
     elif out_path.endswith('.avi'):
         out = cv2.VideoWriter(out_path, cv2.VideoWriter_fourcc(*'DIVX'), fps, output_size)
     else:
         raise NotImplementedError
     images = images[:max_num_frame]
 
-    images = multi_thread(f, images, desc='Reading images')
-    print("Write video")
-    pbar = mmcv.ProgressBar(len(images))
+    images = multi_thread(f, images, desc='Reading images', verbose=verbose)
+    if verbose:
+        print("Write video, output_size:", output_size)
+        pbar = mmcv.ProgressBar(len(images))
     for img in images:
         img = cv2.resize(img, output_size)
         out.write(img)
-        pbar.update()
-
+        if verbose:
+            pbar.update()
     out.release()
-
-    print('\n',out_path, 'Video size: {:0.3f} MB, Image shape: {}'.format(os.path.getsize(out_path)/1024/1024, output_size))
 
 def get_paths(directory, input_type='png', sort=True):
     """
