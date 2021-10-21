@@ -62,7 +62,8 @@ class CocoDataset:
             img_dir = gt.split('/annotations/')[0]+'/images'
             print('Img dir is not set, set to :', img_dir)
             assert osp.isdir(img_dir)
-
+        if isinstance(gt, COCO):
+            gt = gt.dataset
         self.gt = AvCOCO(gt)
 
         if isinstance(pred, str):
