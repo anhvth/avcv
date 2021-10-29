@@ -141,7 +141,7 @@ def images_to_video(
     max_num_frame = int(max_num_frame)
     max_num_frame = min(len(images), max_num_frame)
 
-    h, w = cv2.imread(images[0]).shape[:2]
+    h, w = mmcv.imread(images[0]).shape[:2]
     output_size = (int(w*resize_rate), int(h*resize_rate))
     if out_path.endswith('.mp4'):
         fourcc = cv2.VideoWriter_fourcc(*'MP4V')
