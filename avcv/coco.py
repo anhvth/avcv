@@ -91,7 +91,6 @@ class CocoDataset:
             assert self.pred is not None
 
         CLASSES = {cat_id:cat['name'] for cat_id, cat in self.gt.cats.items()}
-
         im = self.gt.imgs[img_id]
         source = self.pred if mode == 'pred' else self.gt
 

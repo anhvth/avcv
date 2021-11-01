@@ -87,17 +87,16 @@ def put_text(image, pos, text, color=(255, 255, 255)):
                        color, 2)
 
 
-@call_parse
 def images_to_video(
-        images: Param("Path to the images folder or list of images"),
-        out_path: Param("Output output video path", str)=None,
-        fps: Param("Frame per second", int) = 30,
-        no_sort: Param("Sort images", bool) = False,
-        max_num_frame: Param("Max num of frame", int) = 10e12,
-        resize_rate: Param("Resize rate", float) = 1,
-        with_text: Param("Add additional index to image when writing vidoe", bool) = False,
-        text_is_date: Param("Add additional index to image when writing vidoe", bool) = False,
-        verbose:Param("Print...", bool)=True,
+        images
+        out_path=None,
+        fps:int= 30,
+        no_sort= False,
+        max_num_frame= 10e12,
+        resize_rate = 1,
+        with_text = False,
+        text_is_date= False,
+        verbose=True,
         ):
 
     if out_path is None:
@@ -117,10 +116,11 @@ def images_to_video(
         except:
             num = s
         return num
+
     def f(img_or_path):
         if isinstance(img_or_path, str):
             name = os.path.basename(img_or_path)
-            img = cv2.imread(img_or_path)
+            img = mmcv.imread(img_or_path)
             img = cv2.resize(img, output_size)
             assert img is not None, img_or_path
             if with_text:
