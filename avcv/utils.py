@@ -88,7 +88,7 @@ def put_text(image, pos, text, color=(255, 255, 255)):
 
 
 def images_to_video(
-        images
+        images,
         out_path=None,
         fps:int= 30,
         no_sort= False,
