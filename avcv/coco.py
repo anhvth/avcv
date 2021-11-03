@@ -23,12 +23,6 @@ from tqdm import tqdm
 from .visualize import show as av_show
 
 # Cell
-
-
-# export
-
-
-
 class AvCOCO(COCO):
     def __init__(self, annotation_file=None):
         """
@@ -211,12 +205,11 @@ from glob import glob
 from functools import partial
 from PIL import Image
 
-@call_parse
 def video_to_coco(
-                  input_video:Param("path to video", str),
-                  test_json:Param("path to annotation json path, to get the category", str),
-                  output_dir:Param("", str)=None,
-                  skip:Param("", int)=1
+                  input_video,
+                  test_json,
+                  output_dir=None,
+                  skip=1
                  ):
 
     def path2image(path, root_dir):
