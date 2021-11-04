@@ -204,7 +204,6 @@ import os.path as osp
 from glob import glob
 from functools import partial
 from PIL import Image
-
 def video_to_coco(
                   input_video,
                   test_json,
@@ -229,17 +228,14 @@ def video_to_coco(
             print('Set output dir to->', output_dir)
         image_out_dir = osp.join(output_dir, 'images')
 
-    path_out_json = osp.join(image_out_dir, '../annotations/default.json')
+    image_dir_name = osp.normpath(image_out_dir).split('/')[-1]
+    path_out_json = osp.join(image_out_dir, f'../annotations/{image_dir_name}.json')
     mmcv.mkdir_or_exist(osp.dirname(path_out_json))
     mmcv.mkdir_or_exist(image_out_dir)
 
-    print('Generating images:',input_video,'->',  image_out_dir)
-
-#     video_to_images(input_video, image_out_dir)
-    cmd = f'av_v2i {input_video} --output_dir {image_out_dir}'
-    print("Executing:", cmd)
-    os.system(cmd)
-    # generate json
+    print('Generating images:',input_video,'->',  path_out_json)
+    if not osp.isdir(input_video):
+        video_to_images(input_video, image_out_dir)
     paths = glob(osp.join(image_out_dir,'*'))
     print('Done')
     out_dict = dict(images=[], annotations=[], categories=mmcv.load(test_json)['categories'])
@@ -249,12 +245,10 @@ def video_to_coco(
         image['id'] = i
     mmcv.dump(out_dict, path_out_json)
 
-
 @call_parse
-def v2c(
-                    input_video:Param("path to video", str),
-                    test_json:Param("path to annotation json path, to get the category", str),
-                    output_dir:Param("", str)=None,
-                    skip:Param("", int)=1
-                    ):
-    return vi
+def v2c(input_video:Param("path to video", str),
+        test_json:Param("path to annotation json path, to get the category", str),
+        output_dir:Param("", str)=None,
+        skip:Param("", int)=1
+        ):
+    return video_to_coco(input_video, test_json, output_dir, skip)
