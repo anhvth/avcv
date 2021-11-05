@@ -74,7 +74,8 @@ class CocoDataset:
         assert osp.exists(img_path), img_path
         return mmcv.imread(img_path, channel_order=channel_order)
 
-    def visualize(self, img_id=None,  mode='gt', dpi=100, show=False, anns=None, color='green', img=None):
+    def visualize(self, img_id=None,  mode='gt', dpi=100,
+        show=False, anns=None, color='green', img=None, score_thr=0.3):
         if img_id is None:
             img_id = np.random.choice(self.img_ids)
             print('Random visualize img_id:', img_id)
@@ -108,7 +109,9 @@ class CocoDataset:
         lables = np.array(lables)
 
         if len(bboxes):
-            img = mmcv.visualization.imshow_det_bboxes(img, bboxes, lables, CLASSES, show=False, bbox_color=color, text_color=color)
+            img = mmcv.visualization.imshow_det_bboxes(img, bboxes,
+                lables, CLASSES, show=False, bbox_color=color, text_color=color,
+                score_thr=score_thr)
         if show:
             av_show(img[...,::-1], dpi=dpi)
         return img
