@@ -244,6 +244,7 @@ def video_to_coco(
     for i, image in enumerate(out_dict['images']):
         image['id'] = i
     mmcv.dump(out_dict, path_out_json)
+    return os.path.normpath(path_out_json), os.path.normpath(image_out_dir)
 
 @call_parse
 def v2c(input_video:Param("path to video", str),
