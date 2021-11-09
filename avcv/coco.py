@@ -50,6 +50,7 @@ class AvCOCO(COCO):
             self.dataset = dataset
             self.createIndex()
 
+
     def createIndex(self):
         # create index
         if self.verbose:

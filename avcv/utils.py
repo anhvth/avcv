@@ -114,7 +114,7 @@ def images_to_video(
         except:
             num = s
         return num
-    global f
+#     global f
     def f(img_or_path):
         if isinstance(img_or_path, str):
             name = os.path.basename(img_or_path)
@@ -142,7 +142,6 @@ def images_to_video(
     h, w = mmcv.imread(images[0]).shape[:2]
     output_size = (int(w*resize_rate), int(h*resize_rate))
     if out_path.endswith('.mp4'):
-        # fourcc = cv2.VideoWriter_fourcc(*'FMP4')
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         out = cv2.VideoWriter(out_path, fourcc, fps, output_size)
     elif out_path.endswith('.avi'):
@@ -150,9 +149,7 @@ def images_to_video(
     else:
         raise NotImplementedError
     images = images[:max_num_frame]
-    from multiprocessing import Pool
-    with Pool() as p:
-        images = list(tqdm(p.imap(f, images), total=len(images)))
+    images = multi_thread(f, images, verbose=verbose)
     if verbose:
         print("Write video, output_size:", output_size)
         pbar = mmcv.ProgressBar(len(images))
