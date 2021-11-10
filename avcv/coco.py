@@ -12,7 +12,6 @@ import time
 from collections import defaultdict
 
 import matplotlib.pyplot as plt
-from mmcv.ops import bbox_overlaps
 import mmcv
 import numpy as np
 import pandas as pd
@@ -21,6 +20,7 @@ from pycocotools.cocoeval import COCOeval
 from pycocotools.coco import COCO
 from tqdm import tqdm
 from .visualize import show as av_show
+from loguru import logger
 
 # Cell
 class AvCOCO(COCO):
@@ -37,7 +37,7 @@ class AvCOCO(COCO):
         self.verbose = verbose
         if not annotation_file == None:
             if verbose:
-                print('loading annotations into memory...')
+                logger.info('loading annotations into memory...')
             tic = time.time()
             if isinstance(annotation_file, str):
                 with open(annotation_file, 'r') as f:
@@ -46,7 +46,7 @@ class AvCOCO(COCO):
                 dataset = annotation_file
             assert type(dataset)==dict, 'annotation file format {} not supported'.format(type(dataset))
             if verbose:
-                print('Done (t={:0.2f}s)'.format(time.time()- tic))
+                logger('Done (t={:0.2f}s)'.format(time.time()- tic))
             self.dataset = dataset
             self.createIndex()
 
@@ -54,7 +54,7 @@ class AvCOCO(COCO):
     def createIndex(self):
         # create index
         if self.verbose:
-            print('creating index...')
+            logger('creating index...')
         anns, cats, imgs = {}, {}, {}
         imgToAnns,catToImgs = defaultdict(list),defaultdict(list)
         if 'annotations' in self.dataset:
@@ -74,7 +74,7 @@ class AvCOCO(COCO):
             for ann in self.dataset['annotations']:
                 catToImgs[ann['category_id']].append(ann['image_id'])
         if self.verbose:
-            print('index created!')
+            logger('index created!')
 
         # create class members
         self.anns = anns
@@ -89,7 +89,7 @@ class CocoDataset:
         if img_dir is None:
             assert isinstance(gt, str) and '/annotations/' in gt
             img_dir = gt.split('/annotations/')[0]+'/images'
-            print('Img dir is not set, set to :', img_dir)
+            logger(f'Img dir is not set, set to :{img_dir}')
             assert osp.isdir(img_dir)
         if isinstance(gt, COCO):
             gt = gt.dataset
@@ -113,7 +113,7 @@ class CocoDataset:
         show=False, anns=None, color='green', img=None, score_thr=0.3):
         if img_id is None:
             img_id = np.random.choice(self.img_ids)
-            print('Random visualize img_id:', img_id)
+            logger.info('Random visualize img_id={img_id}')
         if img is None:
             img= self.imread(img_id)
 
@@ -199,6 +199,7 @@ class DiagnoseCoco(CocoDataset):
     )
 
     def find_false_samples(self, img_id, score_thr=0.05, visualize=True):
+        from mmcv.ops import bbox_overlaps
         assert self.gt is not None
         assert self.pred is not None
         pred_anns = [ann for ann in self.pred.loadAnns(self.pred.getAnnIds(img_id)) if ann['score']>score_thr]
@@ -263,7 +264,7 @@ def video_to_coco(
     else:
         if output_dir is None:
             output_dir = osp.join(osp.dirname(input_video), get_name(input_video))#input_video.split('.')[0]
-            print('Set output dir to->', output_dir)
+            logger.info('Set output dir to->', output_dir)
         image_out_dir = osp.join(output_dir, 'images')
 
     image_dir_name = osp.normpath(image_out_dir).split('/')[-1]
@@ -271,11 +272,11 @@ def video_to_coco(
     mmcv.mkdir_or_exist(osp.dirname(path_out_json))
     mmcv.mkdir_or_exist(image_out_dir)
 
-    print('Generating images:',input_video,'->',  path_out_json)
+    logger.info('Generating images:',input_video,'->',  path_out_json)
     if not osp.isdir(input_video):
         video_to_images(input_video, image_out_dir)
     paths = glob(osp.join(image_out_dir,'*'))
-    print('Done')
+    logger.info('Done')
     out_dict = dict(images=[], annotations=[], categories=mmcv.load(test_json)['categories'])
     out_dict['images'] = list(map(partial(path2image, root_dir=image_out_dir), paths))
 

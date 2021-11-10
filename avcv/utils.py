@@ -13,6 +13,8 @@ from tqdm import tqdm
 import mmcv
 from fastcore.script import call_parse, Param
 from .process import multi_thread
+from loguru import logger
+
 
 def get_name(path):
     path = osp.basename(path).split('.')[:-1]
@@ -31,7 +33,7 @@ def find_contours(thresh):
     """
     try:
         contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE,
-                                            cv2.CHAIN_APPROX_SIMPLE)
+                                               cv2.CHAIN_APPROX_SIMPLE)
         return contours, hierarchy[0]
     except:
         return None, None
@@ -44,7 +46,7 @@ def download_file_from_google_drive(id_or_link: Param("Link or file id"), destin
         id = x.split("/")[x.split("/").index("d")+1]
     else:
         id = id_or_link
-    print("Download from id:", id)
+    logger.info(f"Download from id: {id}")
     import requests
 
     def get_confirm_token(response):
@@ -74,7 +76,7 @@ def download_file_from_google_drive(id_or_link: Param("Link or file id"), destin
         response = session.get(URL, params=params, stream=True)
 
     save_response_content(response, destination)
-    print("Done ->", destination)
+    logger.info(f"Done -> {destination}")
     return osp.abspath(destination)
 
 
@@ -90,22 +92,24 @@ def put_text(image, pos, text, color=(255, 255, 255)):
 def images_to_video(
         images,
         out_path=None,
-        fps:int= 30,
-        no_sort= False,
-        max_num_frame= 10e12,
-        resize_rate = 1,
-        with_text = False,
-        text_is_date= False,
+        fps: int = 30,
+        no_sort=False,
+        max_num_frame=10e12,
+        resize_rate=1,
+        with_text=False,
+        text_is_date=False,
         verbose=True,
-        ):
+):
 
     if out_path is None:
-        assert isinstance(images, str), "No out_path specify, you need to input a string to a directory"
+        assert isinstance(
+            images, str), "No out_path specify, you need to input a string to a directory"
         out_path = images+'.mp4'
     if isinstance(images, str) and os.path.isdir(images):
         from glob import glob
         images = glob(os.path.join(images, "*.jpg")) + \
-            glob(os.path.join(images, "*.png"))+glob(os.path.join(images, "*.jpeg"))
+            glob(os.path.join(images, "*.png")) + \
+            glob(os.path.join(images, "*.jpeg"))
 
     def get_num(s):
         try:
@@ -115,6 +119,7 @@ def images_to_video(
             num = s
         return num
 #     global f
+
     def f(img_or_path):
         if isinstance(img_or_path, str):
             name = os.path.basename(img_or_path)
@@ -132,7 +137,6 @@ def images_to_video(
             img = img_or_path
         return img
 
-
     if not no_sort and isinstance(images[0], str):
         images = list(sorted(images, key=get_num))
 
@@ -145,21 +149,23 @@ def images_to_video(
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         out = cv2.VideoWriter(out_path, fourcc, fps, output_size)
     elif out_path.endswith('.avi'):
-        out = cv2.VideoWriter(out_path, cv2.VideoWriter_fourcc(*'DIVX'), fps, output_size)
+        out = cv2.VideoWriter(
+            out_path, cv2.VideoWriter_fourcc(*'DIVX'), fps, output_size)
     else:
         raise NotImplementedError
     images = images[:max_num_frame]
     images = multi_thread(f, images, verbose=verbose)
     if verbose:
-        print("Write video, output_size:", output_size)
+        lprint("Write video, output_size:", output_size)
         pbar = mmcv.ProgressBar(len(images))
-    print("out_path:", out_path)
+    lprint("out_path:", out_path)
     for img in images:
         img = cv2.resize(img, output_size)
         out.write(img)
         if verbose:
             pbar.update()
     out.release()
+
 
 # Cell
 @call_parse
@@ -195,7 +201,7 @@ def video_to_images(input_video, output_dir=None, skip=1):
     from imutils.video import count_frames
     if output_dir is None:
         output_dir = input_video.split('.')[0]
-        print('Set output_dir =',output_dir)
+        lprint('Set output_dir =',output_dir)
 
     skip = int(skip)
     # Read the video from specified path
@@ -272,9 +278,7 @@ def memoize(func):
     import os
     import pickle
     from functools import wraps
-
     import xxhash
-
     '''Cache result of function call on disk
     Support multiple positional and keyword arguments'''
     @wraps(func)
@@ -294,6 +298,7 @@ def memoize(func):
                 os.makedirs(cache_dir, exist_ok=True)
                 pickle.dump(result, open(cache_path, 'wb'))
             return result
-        except (KeyError, AttributeError, TypeError):
+        except (KeyError, AttributeError, TypeError, Exception) as e:
+            logger.warning(f'Exception: {e}, use default function call')
             return func(*args, **kwargs)
     return memoized_func

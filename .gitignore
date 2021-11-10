@@ -17,3 +17,4 @@ conda
 *.mp4
 .last_checked
 .eggs/
+cache

@@ -10,6 +10,8 @@ import numpy as np
 import mmcv
 from fastcore.script import *
 import shutil
+from loguru import logger
+import mmcv
 
 
 @call_parse
@@ -25,7 +27,7 @@ def make_mini_coco(json_path: Param(),
 
     out_json = os.path.join(out_dir, "annotations", "mini_json.json")
     if not osp.exists(out_json):
-        print("Making mini dataset", out_dir, "num images:", num_samples)
+        logger.info(f"Making mini dataset out_dir-> {out_dir}, num images:{num_samples}")
         os.makedirs(os.path.join(out_dir, "images"), exist_ok=True)
         os.makedirs(os.path.join(out_dir, "annotations"), exist_ok=True)
         coco = COCO(json_path)
@@ -51,7 +53,7 @@ def make_mini_coco(json_path: Param(),
             shutil.copy(path, new_path)
 
         mmcv.dump(out_dict, out_json)
-    print(out_json, new_img_prefix)
+    logger.info(f"{out_json}, {new_img_prefix}")
     return out_json, new_img_prefix
 
 # Cell
@@ -75,14 +77,16 @@ def dpython(cmd: Param(type=str)):
     # pp(cfg)
     mmcv.mkdir_or_exist(".vscode")
     try:
-        lauch = read_json(".vscode/launch.json")
-    except:
+        lauch = mmcv.load(".vscode/launch.json")
+    except Exception as e:
         lauch = {
             "version": "0.2.0",
             "configurations": [
 
             ]
         }
+        logger.warning(e)
+
     replace = False
     for i, _cfg in enumerate(lauch['configurations']):
         if _cfg["name"] == cfg["name"]:
