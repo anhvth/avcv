@@ -6,7 +6,6 @@ __all__ = ['get_name', 'find_contours', 'download_file_from_google_drive', 'mkdi
 # Cell
 import os
 from glob import glob
-import os
 import cv2
 import os.path as osp
 from tqdm import tqdm
@@ -14,7 +13,6 @@ import mmcv
 from fastcore.script import call_parse, Param
 from .process import multi_thread
 from loguru import logger
-
 
 def get_name(path):
     path = osp.basename(path).split('.')[:-1]
@@ -156,16 +154,15 @@ def images_to_video(
     images = images[:max_num_frame]
     images = multi_thread(f, images, verbose=verbose)
     if verbose:
-        lprint("Write video, output_size:", output_size)
+        logger.info("fWrite video, output_size: {output_size}")
         pbar = mmcv.ProgressBar(len(images))
-    lprint("out_path:", out_path)
+    logger.info(f"out_path: {out_path}")
     for img in images:
         img = cv2.resize(img, output_size)
         out.write(img)
         if verbose:
             pbar.update()
     out.release()
-
 
 # Cell
 @call_parse
@@ -195,39 +192,23 @@ def video_to_images(input_video, output_dir=None, skip=1):
                 input_video: path to video
                 output_dir: default is set to video name
     """
-    import cv2
-    import os
-    import concurrent
-    from imutils.video import count_frames
+
     if output_dir is None:
-        output_dir = input_video.split('.')[0]
-        lprint('Set output_dir =',output_dir)
+        vname = get_name(input_video).split('.')[0]
+        output_dir = osp.join('.cache/video_to_images/', vname)
+        logger.info(f'Set output_dir = {output_dir}')
 
-    skip = int(skip)
-    # Read the video from specified path
-    cam = cv2.VideoCapture(input_video)
-    total_frames = count_frames(input_video)
-    os.makedirs(output_dir, exist_ok=True)
-    # frame
-    currentframe = 0
-    # while(True):
-    with concurrent.futures.ProcessPoolExecutor() as e:
-        f_results = []
-        for current_frame in range(0, total_frames, skip):
-            # reading from frame
-            ret,frame = cam.read()
-
-            if ret:
-                # if video is still left continue creating images
-                name =  os.path.join(output_dir,f'{current_frame:05d}' + '.jpg')
-                if currentframe % skip == 0:
-                    f_results.append(e.submit(cv2.imwrite, name, frame))
-            else:
-                break
-        for result in tqdm(concurrent.futures.as_completed(f_results)):
-            pass
-    cam.release()
-    cv2.destroyAllWindows()
+    video = mmcv.video.VideoReader(input_video)
+    pbar = mmcv.ProgressBar(video._frame_cnt)
+    for i in range(0, len(video), skip):
+        try:
+            img = video[i]
+            out_img_path = os.path.join(output_dir, f'{i:05d}' + '.jpg')
+            mmcv.imwrite(img, out_img_path)
+            pbar.update()
+        except Exception as e:
+            logger.warning(f"Cannot write image index {i}, exception: {e}")
+            continue
 
 @call_parse
 def av_v2i(input_video:Param("", str), output_dir:Param("", str)=None, skip:Param("", int)=1):
@@ -237,6 +218,7 @@ def av_v2i(input_video:Param("", str), output_dir:Param("", str)=None, skip:Para
 from mmcv import Timer
 import pandas as pd
 import numpy as np
+
 class TimeLoger:
     def __init__(self):
         self.timer = Timer()
@@ -260,9 +242,7 @@ class TimeLoger:
             average = np.mean(v)
             times = len(v)
             percent = np.sum(v)*100/total_time
-            # print()
             s += f'\t\t{k}:  \t\t{percent:0.2f}% ({average:0.4f}s) | Times: {times} \n'
-        # print('-----------------------------------------------------------')
         return s
 
 # Cell
@@ -283,7 +263,7 @@ def memoize(func):
     Support multiple positional and keyword arguments'''
     @wraps(func)
     def memoized_func(*args, **kwargs):
-        cache_dir = 'cache'
+        cache_dir = '.cache'
         try:
             import inspect
             func_id = identify((inspect.getsource(func), args, kwargs))

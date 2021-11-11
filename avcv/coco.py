@@ -113,7 +113,7 @@ class CocoDataset:
         show=False, anns=None, color='green', img=None, score_thr=0.3):
         if img_id is None:
             img_id = np.random.choice(self.img_ids)
-            logger.info('Random visualize img_id={img_id}')
+            logger.info(f'Random visualize img_id={img_id}')
         if img is None:
             img= self.imread(img_id)
 
@@ -243,52 +243,65 @@ import os.path as osp
 from glob import glob
 from functools import partial
 from PIL import Image
-def video_to_coco(
-                  input_video,
-                  test_json,
-                  output_dir=None,
-                  skip=1
-                 ):
 
+
+def video_to_coco(
+    input_video,
+    test_json,
+    output_dir=None,
+    skip=1
+):
+
+    assert os.path.exists(input_video), f'{input_video} does not exist'
     def path2image(path, root_dir):
-        w,h = Image.open(path).size
+        w, h = Image.open(path).size
         name = path.replace(root_dir, '')
         if name.startswith('/'):
             name = name[1:]
         return dict(
-            file_name=name,height=h,width=w
+            file_name=name, height=h, width=w
         )
-    if osp.isdir(input_video):
-        image_out_dir = input_video
 
-    else:
-        if output_dir is None:
-            output_dir = osp.join(osp.dirname(input_video), get_name(input_video))#input_video.split('.')[0]
-            logger.info('Set output dir to->', output_dir)
-        image_out_dir = osp.join(output_dir, 'images')
+
+    if output_dir is None:
+        output_dir = osp.join('.cache/video_to_coco', get_name(input_video))
+        logger.info(f'Set output dir to->{output_dir}')
+
+    image_out_dir = osp.join(output_dir, 'images')
+
+    if osp.isdir(input_video):
+        os.symlink(input_video)
+
 
     image_dir_name = osp.normpath(image_out_dir).split('/')[-1]
-    path_out_json = osp.join(image_out_dir, f'../annotations/{image_dir_name}.json')
+    path_out_json = osp.join(output_dir, f'annotations/{image_dir_name}.json')
+
     mmcv.mkdir_or_exist(osp.dirname(path_out_json))
     mmcv.mkdir_or_exist(image_out_dir)
-
-    logger.info('Generating images:',input_video,'->',  path_out_json)
+    source_type = 'dir' if osp.isdir(input_video) else 'video'
+    logger.info(f'Generating images from {source_type}: {input_video} ->  {osp.abspath(output_dir)}')
     if not osp.isdir(input_video):
         video_to_images(input_video, image_out_dir)
-    paths = glob(osp.join(image_out_dir,'*'))
-    logger.info('Done')
-    out_dict = dict(images=[], annotations=[], categories=mmcv.load(test_json)['categories'])
-    out_dict['images'] = list(map(partial(path2image, root_dir=image_out_dir), paths))
+
+    paths = glob(osp.join(image_out_dir, '*'))
+    out_dict = dict(images=[], annotations=[],
+                    categories=mmcv.load(test_json)['categories'])
+    out_dict['images'] = list(
+        map(partial(path2image, root_dir=image_out_dir), sorted(paths)))
 
     for i, image in enumerate(out_dict['images']):
         image['id'] = i
     mmcv.dump(out_dict, path_out_json)
     return os.path.normpath(path_out_json), os.path.normpath(image_out_dir)
 
+
+
+
+# Cell
 @call_parse
-def v2c(input_video:Param("path to video", str),
-        test_json:Param("path to annotation json path, to get the category", str),
-        output_dir:Param("", str)=None,
-        skip:Param("", int)=1
+def v2c(input_video: Param("path to video", str),
+        test_json: Param("path to annotation json path, to get the category", str),
+        output_dir: Param("", str) = None,
+        skip: Param("", int) = 1
         ):
     return video_to_coco(input_video, test_json, output_dir, skip)
