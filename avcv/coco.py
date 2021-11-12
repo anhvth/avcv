@@ -265,7 +265,9 @@ def video_to_coco(
 
 
     if output_dir is None:
-        output_dir = osp.join('.cache/video_to_coco', get_name(input_video))
+        name  = get_name(input_video) if not osp.isdir(input_video) else \
+            os.path.normpath(input_video).split('/')[-1]
+        output_dir = osp.join('.cache/video_to_coco', name)
         logger.info(f'Set output dir to->{output_dir}')
 
     image_out_dir = osp.join(output_dir, 'images')
