@@ -20,6 +20,7 @@ from pycocotools.cocoeval import COCOeval
 from pycocotools.coco import COCO
 from tqdm import tqdm
 from .visualize import show as av_show
+from .visualize import bbox_visualize
 from loguru import logger
 
 # Cell
@@ -129,24 +130,24 @@ class CocoDataset:
 
         bboxes = []
         lables = []
+        scores = []
         for ann in anns:
             x1,y1,w,h = [int(_) for _ in ann['bbox']]
             x2 = x1+w
             y2 = y1+h
-            score = ann.get('score', None)
-            if score is not None:
-                bboxes.append([x1,y1,x2,y2, score])
-            else:
-                bboxes.append([x1,y1,x2,y2])
+            scores.append(ann.get('score', 1))
+            bboxes.append([x1,y1,x2,y2])
             lables.append(ann['category_id'])
 
         bboxes = np.array(bboxes)
         lables = np.array(lables)
 
         if len(bboxes):
-            img = mmcv.visualization.imshow_det_bboxes(img, bboxes,
-                lables, CLASSES, show=False, bbox_color=color, text_color=color,
-                score_thr=score_thr)
+            from .visualize import bbox_visualize
+            img = bbox_visualize(img, bboxes, scores, lables, score_thr, CLASSES)
+#             img = mmcv.visualization.imshow_det_bboxes(img, bboxes,
+#                 lables, CLASSES, show=False, bbox_color=color, text_color=color,
+#                 score_thr=score_thr)
         if show:
             av_show(img[...,::-1], dpi=dpi)
         return img
@@ -270,7 +271,8 @@ def video_to_coco(
     image_out_dir = osp.join(output_dir, 'images')
 
     if osp.isdir(input_video):
-        os.symlink(input_video)
+        logger.info(f'Symn link {input_video}-> {image_out_dir}')
+        os.symlink(os.path.abspath(input_video), image_out_dir)
 
 
     image_dir_name = osp.normpath(image_out_dir).split('/')[-1]
