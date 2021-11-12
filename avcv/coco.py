@@ -46,7 +46,7 @@ class AvCOCO(COCO):
                 dataset = annotation_file
             assert type(dataset)==dict, 'annotation file format {} not supported'.format(type(dataset))
             if verbose:
-                logger('Done (t={:0.2f}s)'.format(time.time()- tic))
+                logger.info('Done (t={:0.2f}s)'.format(time.time()- tic))
             self.dataset = dataset
             self.createIndex()
 
@@ -54,7 +54,7 @@ class AvCOCO(COCO):
     def createIndex(self):
         # create index
         if self.verbose:
-            logger('creating index...')
+            logger.info('creating index...')
         anns, cats, imgs = {}, {}, {}
         imgToAnns,catToImgs = defaultdict(list),defaultdict(list)
         if 'annotations' in self.dataset:
@@ -74,7 +74,7 @@ class AvCOCO(COCO):
             for ann in self.dataset['annotations']:
                 catToImgs[ann['category_id']].append(ann['image_id'])
         if self.verbose:
-            logger('index created!')
+            logger.info('index created!')
 
         # create class members
         self.anns = anns
@@ -89,7 +89,7 @@ class CocoDataset:
         if img_dir is None:
             assert isinstance(gt, str) and '/annotations/' in gt
             img_dir = gt.split('/annotations/')[0]+'/images'
-            logger(f'Img dir is not set, set to :{img_dir}')
+            logger.info(f'Img dir is not set, set to :{img_dir}')
             assert osp.isdir(img_dir)
         if isinstance(gt, COCO):
             gt = gt.dataset
