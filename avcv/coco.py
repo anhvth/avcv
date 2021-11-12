@@ -272,6 +272,7 @@ def video_to_coco(
 
     if osp.isdir(input_video):
         logger.info(f'Symn link {input_video}-> {image_out_dir}')
+        mmcv.mkdir_or_exist(osp.dirname(image_out_dir))
         os.symlink(os.path.abspath(input_video), image_out_dir)
 
 
