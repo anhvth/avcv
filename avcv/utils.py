@@ -7,7 +7,7 @@ __all__ = ['imemoize', 'ICACHE', 'get_name', 'find_contours', 'download_file_fro
 # Cell
 from loguru import logger
 from functools import wraps
-from .utils import identify
+
 ICACHE = dict()
 
 
@@ -20,6 +20,7 @@ def imemoize(func):
         import mmcv
         timer = mmcv.Timer()
         import inspect
+        from .utils import identify
         ident_name = identify((inspect.getsource(func), args, kwargs))
         if not ident_name in ICACHE:
             # logger.warning('{} not in CACHE: "{}"'.format(ident_name, ICACHE))
