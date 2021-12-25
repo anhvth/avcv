@@ -50,6 +50,7 @@ def make_mini_coco(json_path: Param(),
         for img in imgs:
             path = osp.join(image_prefix, img['file_name'])
             new_path = osp.join(new_img_prefix, img['file_name'])
+            mmcv.mkdir_or_exist(osp.dirname(new_path))
             shutil.copy(path, new_path)
 
         mmcv.dump(out_dict, out_json)
