@@ -3,10 +3,11 @@ import os.path as osp
 from unicodedata import category
 
 import matplotlib.pyplot as plt
-
-from avcv.utils import json, mkdir, read_json, shutil, tqdm, identify
-from avcv.vision import plot_images, show, mmcv
 import numpy as np
+
+from avcv.utils import identify, json, mkdir, read_json, shutil, tqdm
+from avcv.vision import mmcv, plot_images, show
+
 
 def debug_make_mini_dataset(json_path, image_prefix, out_dir, n=1000, file_name=None):
     new_img_prefix = osp.join(out_dir, "images")

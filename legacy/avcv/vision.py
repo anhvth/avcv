@@ -1,10 +1,13 @@
 import os
+import os.path as osp
+
 import cv2
+import mmcv
 import numpy as np
 from tqdm import tqdm
-import os.path as osp
+
 from avcv import utils as au
-import mmcv
+
 
 def plot_images(images,
                 labels=None,
@@ -171,8 +174,9 @@ def images_to_video(images, out_path, fps=30, sort=True, max_num_frame=10e12, wi
     print(out_path)
 
 def video_to_images(input_video, output_dir, skip=1):
-    import cv2 
-    import os 
+    import os
+
+    import cv2
     from imutils.video import count_frames
     skip = int(skip)
     # Read the video from specified path 
@@ -265,9 +269,10 @@ def vis_segmask_to_ids(input_dir, output_dir, id_to_color):
     au.multi_thread(fun, [[path, output_dir] for path in paths], verbose=True, max_workers=4)
     
 def vis_combine(dir_a, dir_b, combine_dir, split_txt=None, alpha=None):
-    import mmcv
     import itertools
     from glob import glob
+
+    import mmcv
 
     paths_a = glob(os.path.join(dir_a, '**', '*.jpg'), recursive=True)+glob(os.path.join(dir_a, '**', '*.png'), recursive=True)+glob(os.path.join(dir_a, '**', '*.jpeg'), recursive=True)
     

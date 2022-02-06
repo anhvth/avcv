@@ -22,10 +22,6 @@ index = {"plot_images": "00_visualize.ipynb",
          "TimeLoger": "03_utils.ipynb",
          "identify": "03_utils.ipynb",
          "memoize": "03_utils.ipynb",
-         "EasyDict": "03_utils.ipynb",
-         "persistent_class": "03_utils.ipynb",
-         "is_persistent": "03_utils.ipynb",
-         "import_hook": "03_utils.ipynb",
          "make_mini_coco": "04_debug.ipynb",
          "dpython": "04_debug.ipynb",
          "AvCOCO": "05_coco_dataset.ipynb",
@@ -34,13 +30,15 @@ index = {"plot_images": "00_visualize.ipynb",
          "get_overlap_rate": "05_coco_dataset.ipynb",
          "DiagnoseCoco": "05_coco_dataset.ipynb",
          "video_to_coco": "05_coco_dataset.ipynb",
-         "v2c": "05_coco_dataset.ipynb"}
+         "v2c": "05_coco_dataset.ipynb",
+         "convert_image": "06_cli.ipynb"}
 
 modules = ["visualize.py",
            "process.py",
            "utils.py",
            "debug.py",
-           "coco.py"]
+           "coco.py",
+           "cli.py"]
 
 doc_url = "https://anhvth.github.io/avcv/"
 

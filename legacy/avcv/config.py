@@ -1,8 +1,7 @@
 import mmcv
+
 # from urllib.request import urlopen
-from .utils import get_name, mkdir, osp, os
-
-
+from .utils import get_name, mkdir, os, osp
 
 
 class Config(mmcv.Config):

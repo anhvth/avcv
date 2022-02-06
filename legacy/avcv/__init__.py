@@ -1,8 +1,4 @@
-from . import utils
-from . import vision
-from . import config
-from . import debug
-
+from . import config, debug, utils, vision
 
 __all__ = [
     'utils',

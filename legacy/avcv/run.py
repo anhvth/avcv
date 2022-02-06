@@ -1,5 +1,6 @@
-from avcv.vision import *
 from avcv.utils import *
+from avcv.vision import *
+
 # from avcv.debug import *
 
 if __name__ == '__main__':
