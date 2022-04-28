@@ -239,7 +239,6 @@ def video_to_images(input_video, output_dir=None, skip=1, rescale=1):
         out_img_path = os.path.join(output_dir, f'{i:05d}' + '.jpg')
 
         if not osp.exists(out_img_path):
-            logger.info('Extracting image {}/{}'.format(i, len(video)))
             try:
                 img = video[i]
                 if rescale != 1:
