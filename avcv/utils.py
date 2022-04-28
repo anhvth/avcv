@@ -232,20 +232,24 @@ def video_to_images(input_video, output_dir=None, skip=1, rescale=1):
         logger.info(f'Set output_dir = {output_dir}')
 
     video = mmcv.video.VideoReader(input_video)
+    logger.info(f'Extracting video to images -> {output_dir}')
     pbar = mmcv.ProgressBar(video._frame_cnt)
+
     for i in range(0, len(video), skip):
         out_img_path = os.path.join(output_dir, f'{i:05d}' + '.jpg')
+
         if not osp.exists(out_img_path):
+            logger.info('Extracting image {}/{}'.format(i, len(video)))
             try:
                 img = video[i]
                 if rescale != 1:
                     img = mmcv.imrescale(img, rescale)
 
                 mmcv.imwrite(img, out_img_path)
-                pbar.update()
             except Exception as e:
                 logger.warning(f"Cannot write image index {i}, exception: {e}")
                 continue
+        pbar.update()
 
 @call_parse
 def v2i(input_video:Param("", str), output_dir:Param("", str)=None, skip:Param("", int)=1, rescale:Param("", float)=1):
