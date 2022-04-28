@@ -218,7 +218,7 @@ def av_i2v(
 
 
 # Cell
-def video_to_images(input_video, output_dir=None, skip=1):
+def video_to_images(input_video, output_dir=None, skip=1, rescale=1):
     """
         Extract video to image:
             inputs:
@@ -234,18 +234,22 @@ def video_to_images(input_video, output_dir=None, skip=1):
     video = mmcv.video.VideoReader(input_video)
     pbar = mmcv.ProgressBar(video._frame_cnt)
     for i in range(0, len(video), skip):
-        try:
-            img = video[i]
-            out_img_path = os.path.join(output_dir, f'{i:05d}' + '.jpg')
-            mmcv.imwrite(img, out_img_path)
-            pbar.update()
-        except Exception as e:
-            logger.warning(f"Cannot write image index {i}, exception: {e}")
-            continue
+        out_img_path = os.path.join(output_dir, f'{i:05d}' + '.jpg')
+        if not osp.exists(out_img_path):
+            try:
+                img = video[i]
+                if rescale != 1:
+                    img = mmcv.imrescale(img, rescale)
+
+                mmcv.imwrite(img, out_img_path)
+                pbar.update()
+            except Exception as e:
+                logger.warning(f"Cannot write image index {i}, exception: {e}")
+                continue
 
 @call_parse
-def v2i(input_video:Param("", str), output_dir:Param("", str)=None, skip:Param("", int)=1):
-    return video_to_images(input_video, output_dir, skip)
+def v2i(input_video:Param("", str), output_dir:Param("", str)=None, skip:Param("", int)=1, rescale:Param("", float)=1):
+    return video_to_images(input_video, output_dir, skip, rescale)
 
 # Cell
 from mmcv import Timer

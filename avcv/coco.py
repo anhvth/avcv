@@ -250,7 +250,8 @@ def video_to_coco(
     input_video,
     test_json,
     output_dir=None,
-    skip=1
+    skip=1,
+    rescale=1,
 ):
 
     assert os.path.exists(input_video), f'{input_video} does not exist'
@@ -286,7 +287,7 @@ def video_to_coco(
     source_type = 'dir' if osp.isdir(input_video) else 'video'
     logger.info(f'Generating images from {source_type}: {input_video} ->  {osp.abspath(output_dir)}')
     if not osp.isdir(input_video):
-        video_to_images(input_video, image_out_dir)
+        video_to_images(input_video, image_out_dir, rescale=rescale)
 
     paths = glob(osp.join(image_out_dir, '*'))
     out_dict = dict(images=[], annotations=[],
@@ -307,6 +308,6 @@ def video_to_coco(
 def v2c(input_video: Param("path to video", str),
         test_json: Param("path to annotation json path, to get the category", str),
         output_dir: Param("", str) = None,
-        skip: Param("", int) = 1
+        skip: Param("", int) = 1,        rescale: Param("", float) = 1
         ):
     return video_to_coco(input_video, test_json, output_dir, skip)
