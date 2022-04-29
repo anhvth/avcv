@@ -308,6 +308,6 @@ def video_to_coco(
 def v2c(input_video: Param("path to video", str),
         test_json: Param("path to annotation json path, to get the category", str),
         output_dir: Param("", str) = None,
-        skip: Param("", int) = 1,        rescale: Param("", float) = 1
+        skip: Param("", int) = 1,        rescale: Param("", int) = 1
         ):
     return video_to_coco(input_video, test_json, output_dir, skip)
