@@ -42,4 +42,4 @@ clean:
 	rm -rf dist
 
 lib:
-	nbdev_build_lib
+	nbdev_build_lib && pip install -e ./

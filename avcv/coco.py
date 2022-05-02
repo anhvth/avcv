@@ -251,10 +251,14 @@ def video_to_coco(
     test_json,
     output_dir=None,
     skip=1,
-    rescale=1,
+    rescale=None,
 ):
 
     assert os.path.exists(input_video), f'{input_video} does not exist'
+    try:
+        fps = mmcv.VideoReader(input_video).fps
+    except:
+        fps = None
     def path2image(path, root_dir):
         w, h = Image.open(path).size
         name = path.replace(root_dir, '')
@@ -290,7 +294,7 @@ def video_to_coco(
         video_to_images(input_video, image_out_dir, rescale=rescale)
 
     paths = glob(osp.join(image_out_dir, '*'))
-    out_dict = dict(images=[], annotations=[],
+    out_dict = dict(images=[], annotations=[], meta=dict(fps=fps),
                     categories=mmcv.load(test_json)['categories'])
     out_dict['images'] = list(
         map(partial(path2image, root_dir=image_out_dir), sorted(paths)))
@@ -308,6 +312,6 @@ def video_to_coco(
 def v2c(input_video: Param("path to video", str),
         test_json: Param("path to annotation json path, to get the category", str),
         output_dir: Param("", str) = None,
-        skip: Param("", int) = 1,        rescale: Param("", int) = 1
+        skip: Param("", int) = 1,        rescale: Param("", int) = None
         ):
-    return video_to_coco(input_video, test_json, output_dir, skip)
+    return video_to_coco(input_video, test_json, output_dir, skip, rescale=rescale)
