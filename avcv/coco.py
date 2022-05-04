@@ -86,15 +86,17 @@ class AvCOCO(COCO):
 
 
 class CocoDataset:
-    def __init__(self, gt, img_dir=None, pred=None):
+    def __init__(self, gt, img_dir=None, pred=None, verbose=False):
         if img_dir is None:
             assert isinstance(gt, str) and '/annotations/' in gt
             img_dir = gt.split('/annotations/')[0]+'/images'
-            logger.info(f'Img dir is not set, set to :{img_dir}')
+            if verbose:
+                logger.warning(f'Img dir is not set, set to :{img_dir}')
             assert osp.isdir(img_dir)
+
         if isinstance(gt, COCO):
             gt = gt.dataset
-        self.gt = AvCOCO(gt)
+        self.gt = AvCOCO(gt, verbose=verbose)
 
         if isinstance(pred, str):
             pred = mmcv.load(pred)
