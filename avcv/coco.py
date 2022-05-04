@@ -288,9 +288,15 @@ def video_to_coco(
     source_type = 'dir' if osp.isdir(input_video) else 'video'
 
     if not osp.isdir(input_video): # IF VIDEO => EXTRACT IMAGES to image_out_dir
-        logger.info(f'Generating images from {source_type}: {input_video} ->  {osp.abspath(output_dir)}')
-        mmcv.mkdir_or_exist(image_out_dir)
-        os.system(f"ffmpeg  -i {input_video} '{image_out_dir}/%06d.jpg'")
+
+        is_done_extracted =  len(glob(osp.join(image_out_dir, '*'))) == len(mmcv.VideoReader(input_video))
+        if not is_done_extracted:
+            logger.info(f'Generating images from {source_type}: {input_video} ->  {osp.abspath(output_dir)}')
+            mmcv.mkdir_or_exist(image_out_dir)
+            os.system(f"ffmpeg  -i {input_video} '{image_out_dir}/%06d.jpg'")
+        else:
+            logger.info('Skip extracting video')
+
     else:
         # IF FOLDER THEN CREATE SYMLINK
         logger.info(f'Symn link {input_video}-> {image_out_dir}')
