@@ -86,15 +86,17 @@ class AvCOCO(COCO):
 
 
 class CocoDataset:
-    def __init__(self, gt, img_dir=None, pred=None):
+    def __init__(self, gt, img_dir=None, pred=None, verbose=False):
         if img_dir is None:
             assert isinstance(gt, str) and '/annotations/' in gt
             img_dir = gt.split('/annotations/')[0]+'/images'
-            logger.info(f'Img dir is not set, set to :{img_dir}')
+            if verbose:
+                logger.warning(f'Img dir is not set, set to :{img_dir}')
             assert osp.isdir(img_dir)
+
         if isinstance(gt, COCO):
             gt = gt.dataset
-        self.gt = AvCOCO(gt)
+        self.gt = AvCOCO(gt, verbose=verbose)
 
         if isinstance(pred, str):
             pred = mmcv.load(pred)
@@ -251,10 +253,15 @@ def video_to_coco(
     test_json,
     output_dir=None,
     skip=1,
-    rescale=1,
+    rescale=None,
 ):
 
     assert os.path.exists(input_video), f'{input_video} does not exist'
+    try:
+        fps = mmcv.VideoReader(input_video).fps
+    except:
+        fps = None
+
     def path2image(path, root_dir):
         w, h = Image.open(path).size
         name = path.replace(root_dir, '')
@@ -273,27 +280,27 @@ def video_to_coco(
 
     image_out_dir = osp.join(output_dir, 'images')
 
-    if osp.isdir(input_video):
-        logger.info(f'Symn link {input_video}-> {image_out_dir}')
-        mmcv.mkdir_or_exist(osp.dirname(image_out_dir))
-        os.symlink(os.path.abspath(input_video), image_out_dir)
-
-
     image_dir_name = osp.normpath(image_out_dir).split('/')[-1]
     path_out_json = osp.join(output_dir, f'annotations/{image_dir_name}.json')
 
     mmcv.mkdir_or_exist(osp.dirname(path_out_json))
     mmcv.mkdir_or_exist(image_out_dir)
     source_type = 'dir' if osp.isdir(input_video) else 'video'
-    logger.info(f'Generating images from {source_type}: {input_video} ->  {osp.abspath(output_dir)}')
-    if not osp.isdir(input_video):
-        video_to_images(input_video, image_out_dir, rescale=rescale)
 
-    paths = glob(osp.join(image_out_dir, '*'))
-    out_dict = dict(images=[], annotations=[],
+    if not osp.isdir(input_video): # IF VIDEO => EXTRACT IMAGES to image_out_dir
+        logger.info(f'Generating images from {source_type}: {input_video} ->  {osp.abspath(output_dir)}')
+        mmcv.mkdir_or_exist(image_out_dir)
+        os.system(f"ffmpeg  -i {input_video} '{image_out_dir}/%06d.jpg'")
+    else:
+        # IF FOLDER THEN CREATE SYMLINK
+        logger.info(f'Symn link {input_video}-> {image_out_dir}')
+        os.symlink(osp.abspath(input_video), osp.abspath(image_out_dir))
+
+    paths = list(sorted(glob(osp.join(image_out_dir, '*'))))
+    out_dict = dict(images=[], annotations=[], meta=dict(fps=fps),
                     categories=mmcv.load(test_json)['categories'])
     out_dict['images'] = list(
-        map(partial(path2image, root_dir=image_out_dir), sorted(paths)))
+        map(partial(path2image, root_dir=image_out_dir), paths))
 
     for i, image in enumerate(out_dict['images']):
         image['id'] = i
@@ -308,6 +315,6 @@ def video_to_coco(
 def v2c(input_video: Param("path to video", str),
         test_json: Param("path to annotation json path, to get the category", str),
         output_dir: Param("", str) = None,
-        skip: Param("", int) = 1,        rescale: Param("", float) = 1
+        skip: Param("", int) = 1,        rescale: Param("", int) = None
         ):
-    return video_to_coco(input_video, test_json, output_dir, skip)
+    return video_to_coco(input_video, test_json, output_dir, skip, rescale=rescale)
