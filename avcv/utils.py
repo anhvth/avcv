@@ -139,7 +139,7 @@ def video_to_images(input_video, output_dir=None, skip=1, rescale=None):
     pbar = mmcv.ProgressBar(video._frame_cnt)
 
     for i in range(0, len(video), skip):
-        out_img_path = os.path.join(output_dir, f'{i:05d}' + '.jpg')
+        out_img_path = os.path.join(output_dir, f'{i:06d}' + '.jpg')
 
         if not osp.exists(out_img_path):
             try:
