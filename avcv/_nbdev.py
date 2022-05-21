@@ -30,6 +30,7 @@ index = {"plot_images": "00_visualize.ipynb",
          "get_bboxes": "05_coco_dataset.ipynb",
          "get_overlap_rate": "05_coco_dataset.ipynb",
          "DiagnoseCoco": "05_coco_dataset.ipynb",
+         "to_jpg": "05_coco_dataset.ipynb",
          "video_to_coco": "05_coco_dataset.ipynb",
          "v2c": "05_coco_dataset.ipynb",
          "convert_image": "06_cli.ipynb"}

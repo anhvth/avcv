@@ -120,7 +120,6 @@ def put_text(image, pos, text, color=(255, 255, 255)):
                        color, 2)
 
 
-# Cell
 def video_to_images(input_video, output_dir=None, skip=1, rescale=None):
     """
         Extract video to image:
@@ -170,6 +169,7 @@ def images_to_video(
         with_text=False,
         text_is_date=False,
         verbose=True,
+        resize=False,
 ):
 
     if out_path is None:
@@ -225,11 +225,13 @@ def images_to_video(
     else:
         raise NotImplementedError
     images = images[:max_num_frame]
-    images = multi_thread(f, images, verbose=verbose)
+    if isinstance(images[0], str) or resize:
+        images = multi_thread(f, images, verbose=verbose)
+
     if verbose:
-        logger.info("fWrite video, output_size: {output_size}")
+        logger.info(f"Write video, output_size: {output_size}")
         pbar = mmcv.ProgressBar(len(images))
-    logger.info(f"out_path: {out_path}")
+        logger.info(f"out_path: {out_path}")
     for img in images:
         img = cv2.resize(img, output_size)
         out.write(img)
