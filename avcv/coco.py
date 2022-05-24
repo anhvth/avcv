@@ -316,7 +316,7 @@ from PIL import Image
 from multiprocessing import Pool
 def _f(p):
     img = mmcv.imread(p)
-    mmcv.imwrite(img, p.split('.')[0]+'.jpg')
+    mmcv.imwrite(img, p.replace('.png', '.jpg'))
     os.remove(p)
 
 def to_jpg(img_dir):
@@ -377,7 +377,7 @@ def video_to_coco(
         else:
             im_h, im_w = video[0].shape[:2]
 
-        is_done_extracted =  len(glob(osp.join(image_out_dir, '*'))) == len(video)
+        is_done_extracted =  len(glob(osp.join(image_out_dir, '*.jpg'))) == len(video)
         if not is_done_extracted:
             logger.info(f'Generating images from {source_type}: {input_video} ->  {osp.abspath(output_dir)}')
             mmcv.mkdir_or_exist(image_out_dir)

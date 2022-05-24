@@ -325,5 +325,3 @@ def memoize(func):
             logger.warning(f'Exception: {e}, use default function call')
             return func(*args, **kwargs)
     return memoized_func
-
-# Cell
