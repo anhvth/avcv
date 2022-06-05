@@ -364,10 +364,11 @@ def video_to_coco(
     path_out_json = osp.join(output_dir, f'annotations/{image_dir_name}.json')
 
     mmcv.mkdir_or_exist(osp.dirname(path_out_json))
-    mmcv.mkdir_or_exist(image_out_dir)
+
     source_type = 'dir' if osp.isdir(input_video) else 'video'
 
     if not osp.isdir(input_video): # IF VIDEO => EXTRACT IMAGES to image_out_dir
+        mmcv.mkdir_or_exist(image_out_dir)
         video = mmcv.VideoReader(input_video)
 
 
@@ -395,7 +396,8 @@ def video_to_coco(
         logger.info(f'Symn link {input_video}-> {image_out_dir}')
         os.symlink(osp.abspath(input_video), osp.abspath(image_out_dir))
 
-    paths = list(sorted(glob(osp.join(image_out_dir, '*'))))
+    paths = list(sorted(glob(osp.join(image_out_dir, '*.jpg'))))
+    paths += list(sorted(glob(osp.join(image_out_dir, '*.png'))))
     out_dict = dict(images=[], annotations=[], meta=dict(fps=fps),
                     categories=mmcv.load(test_json)['categories'])
     out_dict['images'] = list(

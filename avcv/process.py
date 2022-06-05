@@ -5,7 +5,7 @@ __all__ = ['multi_thread']
 # Cell
 import mmcv
 from loguru import logger
-def multi_thread(fn, array_inputs, max_workers=None, desc="Multi-thread Pipeline", unit="Samples", verbose=True):
+def multi_thread(fn, array_inputs, max_workers=None, desc="Multi-thread Pipeline", unit="Samples", verbose=True, pbar_iterval=50):
     from concurrent.futures import ThreadPoolExecutor
     from functools import partial
     from glob import glob
@@ -21,10 +21,10 @@ def multi_thread(fn, array_inputs, max_workers=None, desc="Multi-thread Pipeline
         progress_bar = mmcv.utils.ProgressBar(len(array_inputs))
     outputs = {}
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        for result in executor.map(_wraper, array_inputs):
+        for i, result in enumerate(executor.map(_wraper, array_inputs)):
             outputs.update(result)
-            if verbose:
-                progress_bar.update()
+            if verbose and i%pbar_iterval==0:
+                progress_bar.update(pbar_iterval)
     if verbose:
         logger.info('multi_thread')
     outputs = list(outputs.values())
