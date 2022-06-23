@@ -14,11 +14,13 @@ from loguru import logger
 
 @call_parse
 def convert_image(path: Param(help="Root dir", type=str, default='**/*.png'),
-                  type_from_to: Param(help='Convert image from one type to another', type=str, default='png->jpg'),
-                  remove: Param(help="Remove after converted", type=bool)):
+                  type_from_to: Param(help='Convert image from one type to another default=png->jpg', type=str, default='png->jpg'),
+                  remove: Param(help="Remove after converted", type=bool),
+                  recursive: Param(help="glob recursive", type=bool)
+                 ):
     assert '->' in 'type_from_to must include "->" '
     source_ext, target_ext = type_from_to.split('->')
-    paths = glob(path, recursive=1)
+    paths = glob(path, recursive=recursive)
     if remove:
         logger.info('Files will be removed after converted')
     def f_convert(path):

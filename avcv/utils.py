@@ -209,7 +209,7 @@ def images_to_video(
         resize=False,
         output_size=None
 ):
-
+    assert output_size is not None
     if out_path is None:
         assert isinstance(
             images, str), "No out_path specify, you need to input a string to a directory"
@@ -227,7 +227,6 @@ def images_to_video(
         except:
             num = s
         return num
-#     global f
 
     def f(img_or_path):
         if isinstance(img_or_path, str):

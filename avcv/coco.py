@@ -320,7 +320,6 @@ def _f(p):
     os.remove(p)
 
 def to_jpg(img_dir):
-
     paths = glob(osp.join(img_dir, '*.png'))
     logger.info(f'Converting folder {img_dir} to jpg...')
     with Pool(10) as p:
@@ -334,6 +333,7 @@ def video_to_coco(
     output_dir=None,
     skip=1,
     rescale=None,
+    recursive=False,
 ):
 
     assert os.path.exists(input_video), f'{input_video} does not exist'
@@ -382,12 +382,10 @@ def video_to_coco(
         if not is_done_extracted:
             logger.info(f'Generating images from {source_type}: {input_video} ->  {osp.abspath(output_dir)}')
             mmcv.mkdir_or_exist(image_out_dir)
-            # ffmpeg -i toanbd1_4_ses1.mp4 - -vf fps=1 %d.jpg
             cmd = f"ffmpeg  -i {input_video} -s {im_w}x{im_h} {image_out_dir}/%06d.png"
             logger.info(f'Running command: {cmd}')
             os.system(cmd)
             to_jpg(image_out_dir)
-            # video_to_images(input_video, image_out_dir)
         else:
             logger.info('Skip extracting video')
 
@@ -396,8 +394,8 @@ def video_to_coco(
         logger.info(f'Symn link {input_video}-> {image_out_dir}')
         os.symlink(osp.abspath(input_video), osp.abspath(image_out_dir))
 
-    paths = list(sorted(glob(osp.join(image_out_dir, '*.jpg'))))
-    paths += list(sorted(glob(osp.join(image_out_dir, '*.png'))))
+    paths = list(sorted(glob(osp.join(image_out_dir, '*.jpg'), recursive=recursive)))
+    paths += list(sorted(glob(osp.join(image_out_dir, '*.png'), recursive=recursive)))
     out_dict = dict(images=[], annotations=[], meta=dict(fps=fps),
                     categories=mmcv.load(test_json)['categories'])
     out_dict['images'] = list(
@@ -416,6 +414,6 @@ def video_to_coco(
 def v2c(input_video: Param("path to video", str),
         test_json: Param("path to annotation json path, to get the category", str),
         output_dir: Param("", str) = None,
-        skip: Param("", int) = 1,        rescale: Param("", int) = None
+        skip: Param("", int) = 1,        rescale: Param("", int) = None, recursive: Param("Images recursive", bool)=False
         ):
-    return video_to_coco(input_video, test_json, output_dir, skip, rescale=rescale)
+    return video_to_coco(input_video, test_json, output_dir, skip, rescale=rescale, recursive=recursive)
