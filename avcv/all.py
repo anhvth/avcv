@@ -26,3 +26,4 @@ __all__ += utils.__all__
 __all__ += visualize.__all__
 __all__ += cli.__all__
 __all__ += coco.__all__
+__all__ += process.__all__
