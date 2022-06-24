@@ -213,7 +213,7 @@ class CocoDataset:
 
         if len(bboxes):
             from .visualize import bbox_visualize
-            img = bbox_visualize(img, bboxes, scores, lables, score_thr, CLASSES)
+            img = bbox_visualize(img, bboxes, scores, lables, score_thr, CLASSES, )
 #             img = mmcv.visualization.imshow_det_bboxes(img, bboxes,
 #                 lables, CLASSES, show=False, bbox_color=color, text_color=color,
 #                 score_thr=score_thr)
@@ -264,8 +264,9 @@ def get_overlap_rate(boxA, boxB):
 # Cell
 class DiagnoseCoco(CocoDataset):
     COLORS = dict(
-        FN='red', # Undetected GT
-        FP='yellow', # Wrong detection
+        TP=(0, 255, 0),
+        FN=(255, 0, 0), # Undetected GT
+        FP=(255,255,0), # Wrong detection
     )
 
     def find_false_samples(self, img_id, score_thr=0.05, visualize=True):
@@ -300,12 +301,16 @@ class DiagnoseCoco(CocoDataset):
         result['fp'] = [pred_anns[i] for i in  pred_ids]
         result['fn'] = [gt_anns[i] for i in gt_ids]
         if visualize:
-            vis_img = self.visualize(img_id, anns=result['fn'], color=self.COLORS['FN'], show=False)
-            vis_img = self.visualize(img_id,  anns=result['tp'],img=vis_img, show=False,)
-            vis_img = self.visualize(img_id, anns=result['fp'], dpi=150,color=self.COLORS['FP'], show=False, img=vis_img)
+            vis_img = self.visualize(img_id, anns=result['fn'], color=self.COLORS['FN'], show=False, box_color=self.COLORS['FN'])
+            vis_img = self.visualize(img_id,  anns=result['tp'],img=vis_img, show=False,box_color=self.COLORS['TP'])
+            vis_img = self.visualize(img_id, anns=result['fp'], dpi=150,color=self.COLORS['FP'], show=False, img=vis_img, box_color=self.COLORS['FP'])
             vis_img = vis_img[...,::-1].copy()
             result['vis_img'] = vis_img
         return result
+
+    def show(self, img_id, score_thr=0.05, **show_kwargs):
+        img = self.find_false_samples(img_id, score_thr)['vis_img']
+        show(img, **show_kwargs)
 
 # Cell
 from .utils import video_to_images, multi_thread, get_name
