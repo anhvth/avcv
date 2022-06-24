@@ -99,6 +99,8 @@ def tensor2imgs(tensor, mode='bhwc',
     return mmcv.tensor2imgs(tensor, mean=mean, std=std, **kwargs)
 
 # Cell
+
+#export
 _COLORS = np.array(
     [
         0.000, 0.447, 0.741,
