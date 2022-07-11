@@ -2,7 +2,7 @@
 
 __all__ = ['identify', 'memoize', 'imemoize', 'ICACHE', 'get_name', 'get_files', 'find_contours',
            'download_file_from_google_drive', 'mkdir', 'put_text', 'video_to_images', 'v2i', 'images_to_video',
-           'av_i2v', 'TimeLoger', 'printc']
+           'av_i2v', 'TimeLoger', 'generate_tmp_filename', 'get_md5', 'printc']
 
 # Cell
 from loguru import logger
@@ -47,6 +47,8 @@ def memoize(func):
             logger.warning(f'Exception: {e}, use default function call')
             return func(*args, **kwargs)
     return memoized_func
+
+
 def imemoize(func):
     """
         Memoize a function into memory, the function recaculate only
@@ -58,15 +60,18 @@ def imemoize(func):
         timer = mmcv.Timer()
 
         ident_name = identify((inspect.getsource(func), args, kwargs))
-        if not ident_name in ICACHE:
-            result = func(*args, **kwargs)
-            logger.info('Imemoize {}, firsttime:  runtime: {:0.2f} s'.format(
-                func.__name__, timer.since_last_check()))
-            ICACHE[ident_name] = result
-        else:
+        # if not ident_name in ICACHE:
+        try:
             result = ICACHE[ident_name]
-            logger.info('Imemoize {} cached, runtime: {:0.2f} s'.format(
-                func.__name__, timer.since_last_check()))
+        except:
+            result = func(*args, **kwargs)
+            # logger.info('Imemoize {}, firsttime:  runtime: {:0.2f} s'.format(
+            #     func.__name__, timer.since_last_check()))
+            ICACHE[ident_name] = result
+        # else:
+
+            # logger.info('Imemoize {} cached, runtime: {:0.2f} s'.format(
+            #     func.__name__, timer.since_last_check()))
 
         return result
     return _f
@@ -81,6 +86,11 @@ import mmcv
 from fastcore.script import call_parse, Param
 from .process import multi_thread
 from loguru import logger
+
+import tempfile
+import os
+
+
 
 def get_name(path):
     path = osp.basename(path).split('.')[:-1]
@@ -265,20 +275,23 @@ def images_to_video(
         raise NotImplementedError
     images = images[:max_num_frame]
     if isinstance(images[0], str) or resize:
-        logger.info('Read and resize images to shape {}'.format(output_size))
-        images = multi_thread(f, images, verbose=True)
+        if verbose:
+            logger.info('Read and resize images to shape {}'.format(output_size))
+        images = multi_thread(f, images, verbose=verbose)
 
-    logger.info(f"Write video, output_size: {output_size}")
-    pbar = mmcv.ProgressBar(len(images))
+    if verbose:
+        logger.info(f"Write video, output_size: {output_size}")
+        pbar = mmcv.ProgressBar(len(images))
 
     n_update = max(len(images)//1000, 1)
     for i, img in enumerate(images):
         img = cv2.resize(img, output_size)
         out.write(img)
-        if i % n_update == 0:
+        if i % n_update == 0 and verbose:
             pbar.update(n_update)
-    # if verbose:
-    logger.info("-> {}".format(osp.abspath(out_path)))
+    if verbose:
+        logger.info("-> {}".format(osp.abspath(out_path)))
+
     out.release()
 @call_parse
 def av_i2v(
@@ -333,12 +346,30 @@ class TimeLoger:
         return s
 
 # Cell
+def generate_tmp_filename():
+    return tempfile.NamedTemporaryFile().name
+from .utils import memoize
+@memoize
+def get_md5(video_path, os_system='linux'):
+    tmp = tempfile.NamedTemporaryFile().name
+    if os_system == 'linux':
+        cmd = f'md5sum {video_path} > {tmp}'
+        os.system(cmd)
+        md5 = open(tmp).readlines()[0].split(' ')[0]
+    else:
+        os.system(f'md5 {video_path} > {tmp}')
+        md5 = open(tmp).readlines()[0].split(' = ')[1][:-1]
+    return md5
+
+
+# Cell
 import inspect
-def printc(module_or_func, verbose=True):
+def printc(module_or_func, verbose=True, return_lines=False):
     """
         Print code given a
     """
     lines = inspect.getsource(module_or_func)
     if verbose:
         print(lines)
-    return lines
+    if return_lines:
+        return lines
