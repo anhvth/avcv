@@ -40,4 +40,4 @@ def multi_process(f, inputs, num_workers=10):
         it = p.imap(f, inputs)
         total = len(inputs)
         return list(tqdm(it, total=total))
-show_doc(multi_process)
+
