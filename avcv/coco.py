@@ -479,23 +479,34 @@ def split_coco(coco, train_ratio=0.85, seed=0):
     return get_ds(train_ids), get_ds(test_ids)
 
 
-def concat_coco(datasets):
+def concat_coco(datasets, new_root, name=None):
+    """
+        Example:
+            concat_coco([
+                (train_ds_1, '/data/full-version-vip-pro/DMS_DB_090922/'),
+                (train_ds_2, '/data/DMS_Behavior_Detection/merge-phone-cigaret-food/images'),
+
+            ], '/data/face_food_concat/', 'train');
+        """
+    mmcv.mkdir_or_exist(osp.join(new_root, 'annotations'))
     out_concat = dict(
         images=[],
         annotations=[],
     )
 
-    for path in datasets:
-        dataset = AvCOCO(path)
+    for json_path, old_img_dir in datasets:
+        dataset = AvCOCO(json_path)
         # assert check_save_coco_dict(dataset.dataset)
+        CocoDataset(json_path, old_img_dir).visualize()
         
         for img_id in dataset.imgs:
-
             image = dataset.imgs[img_id]
             anns = dataset.imgToAnns[image['id']] if img_id in dataset.imgToAnns else []
-            
             image['id'] = len(out_concat['images'])
-            
+            old_path = osp.join(old_img_dir, image['file_name'])
+            old_path = osp.abspath(old_path)
+            assert osp.exists(old_path), old_path
+            image['file_name'] = osp.relpath(old_path, osp.join(new_root, 'images'))
             for ann in anns:
                 ann['image_id'] = image['id']
                 w,h = ann['bbox'][-2:]
@@ -507,6 +518,11 @@ def concat_coco(datasets):
             out_concat['images'].append(image)
 
     out_concat['categories'] = dataset.dataset['categories']
+    if name is not None:
+        out_json_path = osp.join(new_root,f'annotations/{name}.json')
+        logger.info('Dump->{}', out_json_path)
+        check_save_coco_dict(out_concat)
+        mmcv.dump(out_concat, out_json_path)
     return out_concat
 
 
