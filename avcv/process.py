@@ -9,7 +9,7 @@ from loguru import logger
 
 def multi_thread(fn, array_inputs, max_workers=None, 
                  desc="Multi-thread Pipeline", unit="Samples", 
-                 verbose=True, pbar_iterval=50):
+                 verbose=True, pbar_iterval=10):
     from concurrent.futures import ThreadPoolExecutor
     from functools import partial
     from glob import glob
