@@ -6,9 +6,9 @@ __all__ = ['multi_thread', 'multi_process']
 # %% ../nbs/01_process.ipynb 3
 import mmcv
 from loguru import logger
-
+from IPython import display
 def multi_thread(fn, array_inputs, max_workers=None, 
-                 desc="Multi-thread Pipeline", unit="Samples", 
+                 desc="", unit="Samples", 
                  verbose=True, pbar_iterval=10):
     from concurrent.futures import ThreadPoolExecutor
     from functools import partial
@@ -31,17 +31,31 @@ def multi_thread(fn, array_inputs, max_workers=None,
             if verbose and i%pbar_iterval==0:
                 progress_bar.update(pbar_iterval)
     if verbose:
-        logger.info('multi_thread')
+        logger.info('multi_thread {}, {}', fn.__name__, desc)
     outputs = list(outputs.values())
     return outputs
 
 
-# %% ../nbs/01_process.ipynb 4
-def multi_process(f, inputs, num_workers=10):
+
+
+# %% ../nbs/01_process.ipynb 5
+def multi_process(f, inputs, max_workers=8, desc='',
+               unit='Samples', verbose=True, pbar_iterval=10):
     from multiprocessing import Pool
     from tqdm import tqdm
-    with Pool(num_workers) as p:
+    if verbose:
+        pbar = mmcv.ProgressBar(len(inputs))
+        logger.info('Multi processing {} | Num samples: {}', f.__name__, len(inputs))
+        
+    with Pool(max_workers) as p:
         it = p.imap(f, inputs)
         total = len(inputs)
-        return list(tqdm(it, total=total))
+        # return list(tqdm(it, total=total))
+        return_list = []
+        for i, ret in enumerate(it):
+            return_list.append(ret)
+            if i % pbar_iterval == 0:
+                pbar.update(pbar_iterval)
+    return return_list
+
 
