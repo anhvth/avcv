@@ -163,7 +163,7 @@ class CocoDataset:
             img_dir = gt.split('/annotations/')[0]+'/images'
             if verbose:
                 logger.warning(f'Img dir is not set, set to :{img_dir}')
-            assert osp.isdir(img_dir)
+            # assert osp.isdir(img_dir)
             
         if isinstance(gt, COCO):
             gt = gt.dataset
@@ -179,7 +179,7 @@ class CocoDataset:
 
     def imread(self, img_id, channel_order='bgr'):
         im = self.gt.imgs[img_id]
-        img_path = osp.join(self.img_dir,im['file_name'])
+        img_path = osp.abspath(osp.join(self.img_dir,im['file_name']))
         assert osp.exists(img_path), img_path
         return mmcv.imread(img_path, channel_order=channel_order)
 
@@ -381,6 +381,7 @@ def video_to_coco(
     skip=1,
     rescale=None,
     recursive=False,
+    min_is_done_extracted_ratio=.7,
 ):
 
     assert os.path.exists(input_video), f'{input_video} does not exist'
@@ -424,8 +425,12 @@ def video_to_coco(
             im_h, im_w = _im.shape[:2]#int(rescale*im_h), int(rescale*im_w)
         else:
             im_h, im_w = video[0].shape[:2]
-
-        is_done_extracted =  len(glob(osp.join(image_out_dir, '*.jpg'))) == len(video)
+        num_found_imgs = len(glob(osp.join(image_out_dir, '*.jpg')))
+        is_done_extracted = (num_found_imgs / len(video)) > min_is_done_extracted_ratio
+        if not num_found_imgs  == len(video):
+            logger.warning(f'Differ num of extracted images and video len {num_found_imgs=}, {len(video)=}, {is_done_extracted=}')
+        
+        
         if not is_done_extracted:
             logger.info(f'Generating images from {source_type}: {input_video} ->  {osp.abspath(output_dir)}')
             mmcv.mkdir_or_exist(image_out_dir)
@@ -488,38 +493,54 @@ def concat_coco(datasets, new_root, name=None):
 
             ], '/data/face_food_concat/', 'train');
         """
+    all_cat_name = []
+    for dataset in datasets:
+        all_cat_name.extend(
+            [cat['name'].lower() for cat in AvCOCO(dataset[0]).cats.values()])
+
+    all_cat_name = list(set(all_cat_name))
+    cat_name2id = {name: i + 1 for i, name in enumerate(all_cat_name)}
+    # cat = {name:i+1 for i, name in enumerate(all_cat_name)}
+    # import ipdb; ipdb.set_trace()
+    print(f'New {cat_name2id=}')
+
     mmcv.mkdir_or_exist(osp.join(new_root, 'annotations'))
-    out_concat = dict(
-        images=[],
-        annotations=[],
-    )
+    out_concat = dict(images=[],
+                      annotations=[],
+                      categories=[
+                          dict(name=name, id=id)
+                          for name, id in cat_name2id.items()
+                      ])
 
     for json_path, old_img_dir in datasets:
         dataset = AvCOCO(json_path)
         # assert check_save_coco_dict(dataset.dataset)
         CocoDataset(json_path, old_img_dir).visualize()
-        
+
         for img_id in dataset.imgs:
             image = dataset.imgs[img_id]
-            anns = dataset.imgToAnns[image['id']] if img_id in dataset.imgToAnns else []
+            anns = dataset.imgToAnns[
+                image['id']] if img_id in dataset.imgToAnns else []
             image['id'] = len(out_concat['images'])
             old_path = osp.join(old_img_dir, image['file_name'])
             old_path = osp.abspath(old_path)
             assert osp.exists(old_path), old_path
-            image['file_name'] = osp.relpath(old_path, osp.join(new_root, 'images'))
+            image['file_name'] = osp.relpath(old_path,
+                                             osp.join(new_root, 'images'))
             for ann in anns:
+                cat_name = dataset.cats[ann['category_id']]['name']
+                ann['category_id'] = cat_name2id[cat_name.lower()]
                 ann['image_id'] = image['id']
-                w,h = ann['bbox'][-2:]
-                ann['area'] = w*h
+                w, h = ann['bbox'][-2:]
+                ann['area'] = w * h
                 ann['id'] = len(out_concat['annotations'])
-                
+
                 out_concat['annotations'].append(ann)
-                
+
             out_concat['images'].append(image)
 
-    out_concat['categories'] = dataset.dataset['categories']
     if name is not None:
-        out_json_path = osp.join(new_root,f'annotations/{name}.json')
+        out_json_path = osp.join(new_root, f'annotations/{name}.json')
         logger.info('Dump->{}', out_json_path)
         check_save_coco_dict(out_concat)
         mmcv.dump(out_concat, out_json_path)

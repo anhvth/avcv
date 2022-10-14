@@ -233,7 +233,7 @@ def bbox_visualize(img, boxes, scores, cls_ids, conf=0.5, class_names=None, text
 
     return img
 
-# %% ../nbs/00_visualize.ipynb 12
+# %% ../nbs/00_visualize.ipynb 13
 from fastcore.parallel import threaded
 import time
 from matplotlib import colors as mcl
@@ -284,6 +284,12 @@ class Board:
         return self.board
     
     def set_line_text(self, line_idx, text, prob=None):
+        if line_idx is None:
+            if not hasattr(self, 'line_idx'):
+                self.line_idx = 0
+            else:
+                self.line_idx += 1
+            line_idx = self.line_idx
         if prob is not None:
             assert prob >=0 and prob <=1
             text = (text, prob)
@@ -305,7 +311,8 @@ class Board:
         # call the returned fuction to get the actual img_concat value
         self.img = img
         def f():
-            board = self()
+            self()
+            board = self.board
             img = mmcv.imread(self.img)
             board = mmcv.imresize_like(board, img)
             return np.concatenate([img, board], 1)
