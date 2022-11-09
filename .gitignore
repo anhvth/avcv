@@ -18,4 +18,5 @@ conda
 .last_checked
 .eggs/
 cache
+*.log
 .cache
