@@ -462,7 +462,7 @@ def video_to_coco(
 
 
 
-# %% ../nbs/05_coco_dataset.ipynb 14
+# %% ../nbs/05_coco_dataset.ipynb 15
 def split_coco(coco, train_ratio=0.85, seed=0):
     if isinstance(coco, dict):
         coco = AvCOCO(coco)
@@ -485,7 +485,7 @@ def split_coco(coco, train_ratio=0.85, seed=0):
     return get_ds(train_ids), get_ds(test_ids)
 
 
-def concat_coco(datasets, new_root, name=None):
+def concat_coco(datasets, new_root, name=None, cat_name2id=None, categories=None, strict_image_path=True):
     """
         Example:
             concat_coco([
@@ -494,16 +494,17 @@ def concat_coco(datasets, new_root, name=None):
 
             ], '/data/face_food_concat/', 'train');
         """
-    all_cat_name = []
-    for dataset in datasets:
-        all_cat_name.extend(
-            [cat['name'].lower() for cat in AvCOCO(dataset[0]).cats.values()])
+    if cat_name2id is None:
+        all_cat_name = []
+        for dataset in datasets:
+            all_cat_name.extend(
+                [cat['name'].lower() for cat in AvCOCO(dataset[0]).cats.values()])
 
-    all_cat_name = list(set(all_cat_name))
-    cat_name2id = {name: i + 1 for i, name in enumerate(all_cat_name)}
-    # cat = {name:i+1 for i, name in enumerate(all_cat_name)}
-    # import ipdb; ipdb.set_trace()
-    print(f'New {cat_name2id=}')
+        all_cat_name = list(set(all_cat_name))
+        cat_name2id = {name: i + 1 for i, name in enumerate(all_cat_name)}
+        # cat = {name:i+1 for i, name in enumerate(all_cat_name)}
+        # import ipdb; ipdb.set_trace()
+        print(f'New {cat_name2id=}')
 
     mmcv.mkdir_or_exist(osp.join(new_root, 'annotations'))
     out_concat = dict(images=[],
@@ -511,23 +512,40 @@ def concat_coco(datasets, new_root, name=None):
                       categories=[
                           dict(name=name, id=id)
                           for name, id in cat_name2id.items()
-                      ])
-
+                      ] if categories is None else categories)
+    CACHE_IMAGE_PATH2ID = {}
+    def get_image_id(image_path):
+        image_path = osp.abspath(image_path)
+        if not image_path in CACHE_IMAGE_PATH2ID:
+            CACHE_IMAGE_PATH2ID[image_path] = len(CACHE_IMAGE_PATH2ID)+1
+            
+        return CACHE_IMAGE_PATH2ID[image_path]
+        
+    added_image_ids = set()
+    
+    for i, inp in enumerate(datasets):
+        if not isinstance(inp, tuple):
+            datasets[i] = (inp, inp.split('/annotations/')[0]+'/images')
+    
     for json_path, old_img_dir in datasets:
-        dataset = AvCOCO(json_path)
-        # assert check_save_coco_dict(dataset.dataset)
-        CocoDataset(json_path, old_img_dir).visualize()
 
+        if isinstance(json_path, str):
+            dataset = AvCOCO(json_path)
+        else:
+            dataset = json_path
         for img_id in dataset.imgs:
             image = dataset.imgs[img_id]
             anns = dataset.imgToAnns[
                 image['id']] if img_id in dataset.imgToAnns else []
-            image['id'] = len(out_concat['images'])
+
             old_path = osp.join(old_img_dir, image['file_name'])
             old_path = osp.abspath(old_path)
-            assert osp.exists(old_path), old_path
+            if strict_image_path:
+                assert osp.exists(old_path), old_path
             image['file_name'] = osp.relpath(old_path,
                                              osp.join(new_root, 'images'))
+            
+            image['id'] = get_image_id(old_path)
             for ann in anns:
                 cat_name = dataset.cats[ann['category_id']]['name']
                 ann['category_id'] = cat_name2id[cat_name.lower()]
@@ -537,8 +555,12 @@ def concat_coco(datasets, new_root, name=None):
                 ann['id'] = len(out_concat['annotations'])
 
                 out_concat['annotations'].append(ann)
-
-            out_concat['images'].append(image)
+                
+            if not image['id'] in added_image_ids:
+                valid_classes = set([cat['name'] for cat in dataset.cats.values()]) if not 'pred_' in json_path else None
+                image['valid_classes'] = valid_classes
+                out_concat['images'].append(image)
+                added_image_ids.add(image['id'])
 
     if name is not None:
         out_json_path = osp.join(new_root, f'annotations/{name}.json')
@@ -570,7 +592,8 @@ def extract_coco(coco, img_ids):
     anns = coco.loadAnns(coco.getAnnIds(img_ids))
     return dict(images=imgs, annotations=anns, categories=coco.dataset['categories'])
 
-# %% ../nbs/05_coco_dataset.ipynb 17
+
+# %% ../nbs/05_coco_dataset.ipynb 19
 @call_parse
 def v2c(input_video: Param("path to video", str),
         test_json: Param("path to annotation json path, to get the category", str),
@@ -580,7 +603,7 @@ def v2c(input_video: Param("path to video", str),
     return video_to_coco(input_video, test_json, output_dir, skip, rescale=rescale, recursive=recursive)
 
 
-# %% ../nbs/05_coco_dataset.ipynb 18
+# %% ../nbs/05_coco_dataset.ipynb 20
 from fastcore.all import *
 class CocoConverterFromYolo1(object):
     """
@@ -607,8 +630,9 @@ class CocoConverterFromYolo1(object):
         
         
         out_dict = dict(images=[], annotations=[], categories=[{'id':catname2id[name], 'name':name} for name in cat_names])
-        # for image_path in tqdm(self.images):
-        def f(image_path):
+
+        # def f(image_path):
+        for image_path in image_paths:
             image = dict(file_name = osp.relpath(image_path, self.image_dir), id=len(out_dict['images']))
             txt_file_name = image['file_name'].split('.')[0]+'.txt'
             
@@ -637,7 +661,7 @@ class CocoConverterFromYolo1(object):
                     bbox_dict['bbox'] = [x_coco,y_coco,w,h]
                     bbox_dict['segmentation'] = [[x_coco,y_coco,x_coco+w,y_coco, x_coco+w, y_coco+h, x_coco, y_coco+h]]
                     out_dict['annotations'].append(bbox_dict)
-        multi_thread(f, image_paths, max_workers=None)
+        # multi_thread(f, image_paths, max_workers=None)
         
         self.cc = CocoDataset(out_dict, self.image_dir)
         if out_path is not None:
