@@ -4,9 +4,12 @@
 __all__ = ['multi_thread', 'multi_process']
 
 # %% ../nbs/01_process.ipynb 3
-import mmcv
+
 from loguru import logger
 from IPython import display
+
+def mmcv():import mmcv; return mmcv
+
 def multi_thread(fn, array_inputs, max_workers=None, 
                  desc="", unit="Samples", 
                  verbose=True, pbar_iterval=10):
@@ -23,7 +26,7 @@ def multi_thread(fn, array_inputs, max_workers=None,
     array_inputs = [(i, _) for i, _ in enumerate(array_inputs)]
     if verbose:
         logger.info(desc)
-        progress_bar = mmcv.ProgressBar(len(array_inputs))#tqdm(total=len(array_inputs))
+        progress_bar = mmcv().ProgressBar(len(array_inputs))#tqdm(total=len(array_inputs))
     outputs = {}
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         for i, result in enumerate(executor.map(_wraper, array_inputs)):
@@ -44,7 +47,7 @@ def multi_process(f, inputs, max_workers=8, desc='',
     from multiprocessing import Pool
     from tqdm import tqdm
     if verbose:
-        pbar = mmcv.ProgressBar(len(inputs))
+        pbar = mmcv().ProgressBar(len(inputs))
         logger.info('Multi processing {} | Num samples: {}', f.__name__, len(inputs))
         
     with Pool(max_workers) as p:

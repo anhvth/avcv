@@ -12,13 +12,23 @@ from functools import wraps
 import xxhash
 from loguru import logger
 from functools import wraps
-import mmcv
+
 import inspect
 
 ICACHE = dict()
 import xxhash
 import pickle
-import mmcv
+
+
+# from mmcv import Timer, mkdir_or_exist, imread
+def imread(*args, **kwargs):
+    import cv2
+    return cv2.imread(*args, **kwargs)
+
+def mkdir_or_exist(d)
+    os.makedirs(d, exist_ok=True)
+
+
 
 def identify(x):
     '''Return an hex digest of the input'''
@@ -37,7 +47,7 @@ def self_memoize(func):
         if not hasattr(self, 'cache'):
             self.cache = {}
         ident_name = identify(args)
-        timer = mmcv.Timer()
+        timer = Timer()
         if ident_name in self.cache:
             result = self.cache[ident_name]
             # print('[Cached]: {:0.2f}'.format(timer.since_start()))
@@ -65,7 +75,7 @@ def memoize(func):
             else:
                 func_id = identify((inspect.getsource(func), args, kwargs))
             cache_path = os.path.join(CACHE_DIR, 'funcs', func.__name__+'/'+func_id)
-            mmcv.mkdir_or_exist(os.path.dirname(cache_path))
+            mkdir_or_exist(os.path.dirname(cache_path))
 
             if (os.path.exists(cache_path) and
                     not func.__name__ in os.environ and
@@ -85,10 +95,11 @@ def imemoize(func):
         Memoize a function into memory, the function recaculate only 
         change when its belonging arguments change
     """
+    from mmcv import Timer
     @wraps(func)
     def _f(*args, **kwargs):
 
-        timer = mmcv.Timer()
+        timer = Timer()
 
         ident_name = identify((inspect.getsource(func), args, kwargs))
         # if not ident_name in ICACHE:
@@ -106,7 +117,7 @@ from glob import glob
 import cv2
 import os.path as osp
 from tqdm import tqdm
-import mmcv
+
 from fastcore.script import call_parse, Param
 from .process import multi_thread
 from loguru import logger
@@ -164,9 +175,9 @@ def video_to_images(input_video, output_dir=None, skip=1, rescale=None):
         output_dir = osp.join('.cache/video_to_images/', vname)
         logger.info(f'Set output_dir = {output_dir}')
 
-    video = mmcv.video.VideoReader(input_video)
+    video = mmcv().video.VideoReader(input_video)
     logger.info(f'Extracting video to images -> {output_dir}')
-    pbar = mmcv.ProgressBar(video._frame_cnt)
+    pbar = mmcv().ProgressBar(video._frame_cnt)
     n_update = max(1, len(video)/1000)
     for i in range(0, len(video), skip):
         out_img_path = os.path.join(output_dir, f'{i:06d}' + '.jpg')
@@ -175,9 +186,9 @@ def video_to_images(input_video, output_dir=None, skip=1, rescale=None):
             try:
                 img = video[i]
                 if rescale is not None:
-                    img = mmcv.imrescale(img, (rescale, rescale))
+                    img = mmcv().imrescale(img, (rescale, rescale))
 
-                mmcv.imwrite(img, out_img_path)
+                mmcv().imwrite(img, out_img_path)
             except Exception as e:
                 logger.warning(f"Cannot write image index {i}, exception: {e}")
                 continue
@@ -225,7 +236,7 @@ def images_to_video(
     def f(img_or_path):
         if isinstance(img_or_path, str):
             name = os.path.basename(img_or_path)
-            img = mmcv.imread(img_or_path)
+            img = imread(img_or_path)
             img = cv2.resize(img, output_size)
             assert img is not None, img_or_path
             if with_text:
@@ -247,7 +258,7 @@ def images_to_video(
 
 
     if output_size is None:
-        h, w = mmcv.imread(images[0]).shape[:2]
+        h, w = imread(images[0]).shape[:2]
         output_size = (int(w*resize_rate), int(h*resize_rate))
     if out_path.endswith('.mp4'):
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
@@ -265,7 +276,7 @@ def images_to_video(
     
     if verbose:
         logger.info(f"Write video, output_size: {output_size}")
-        pbar = mmcv.ProgressBar(len(images))
+        pbar = mmcv().ProgressBar(len(images))
 
     n_update = max(len(images)//1000, 1)
     for i, img in enumerate(images):
