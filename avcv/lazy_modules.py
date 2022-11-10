@@ -32,4 +32,3 @@ class LazyObject(object):
     def __help__(self):
         real_module = self.get_real_module()
         return help(real_module)
-mmcv = LazyObject('mmcv')
