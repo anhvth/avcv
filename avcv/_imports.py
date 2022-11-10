@@ -2,6 +2,9 @@
 # import __main__ as main
 # def is_interactive():
 #     return not hasattr(main, '__file__')
+from .lazy_modules import LazyObject
+import os
+import os.path as osp
 import time
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
