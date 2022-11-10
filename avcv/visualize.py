@@ -236,7 +236,7 @@ class Board:
     def __init__(self, num_lines=10, line_h=40, line_w = 300, font_scale=1, colors=None):
         colors = list(matplotlib.colors.ColorConverter.colors.keys())
         colors = np.array([matplotlib.colors.ColorConverter.to_rgb(c) for c in colors])
-        mplCOCO_COLORS = (colors*255).astype(int)        
+        colors = (colors*255).astype(int)        
         
         self.texts = ['' for _ in range(num_lines)]
         self.board_h = line_h*(num_lines+2)
