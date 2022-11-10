@@ -29,5 +29,7 @@ class LazyObject(object):
     def __repr__(self):
         real_module = self.get_real_module()
         return real_module.__repr__()
-        
+    def __help__(self):
+        real_module = self.get_real_module()
+        return help(real_module)
 mmcv = LazyObject('mmcv')
