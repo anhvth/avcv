@@ -1,23 +1,33 @@
+# from avcv.utils import memoize
+
+
+
 class LazyObject(object):
-    ATTRS = dict()
+    # ATTRS = dict()
     def __init__(self, module_name):
         self.module_name = module_name
-        self.__loaded = False
+        self.is_loaded = False
+        self.tree = dict()
+    def __getattr__(self, item):
+        try:
+            return self.tree[item]
+        except:
+            real_module = self.get_real_module()
+            for obj_name in dir(real_module):
+                self.tree[obj_name] = getattr(real_module, obj_name)
+            return self.tree[obj_name]
 
-    def __getattr__(self, *args, **kwargs):
-        if not self.__loaded:
-            self.load()
-        return getattr(self, *args)
-    def load(self):
-        exec(f'import {self.module_name}')
-        self.__real = eval(self.module_name)
-        ds = dir(self.__real)
-        for obj_name in ds:
-            obj = eval(f'{self.module_name}.{obj_name}')
-            setattr(self, obj_name, obj)
-            self.ATTRS[obj_name] = obj
-        self.__loaded = True
+    def get_real_module(self):
+        if not 'real_module' in self.tree:
+            exec(f'import {self.module_name}')
+            self.tree['real_module'] =  eval(self.module_name)
+        return self.tree['real_module']
+
+    def __dir__(self):
+        return self.tree.keys()
+
     def __repr__(self):
-        return self.__real.__repr__()
-
-
+        real_module = self.get_real_module()
+        return real_module.__repr__()
+        
+mmcv = LazyObject('mmcv')
