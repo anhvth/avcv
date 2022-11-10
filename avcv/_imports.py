@@ -24,9 +24,10 @@ import json
 from PIL import Image
 from tqdm import tqdm
 from pycocotools.coco import COCO
-import matplotlib.pyplot as plt
+
 
 mmcv = LazyObject('mmcv')
 np = LazyObject('numpy')
 ipdb = LazyObject('ipdb')
 cv2 = LazyObject('cv2')
+plt = LazyObject('plt', 'import matplotlib.pyplot as plt')
