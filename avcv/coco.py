@@ -2,32 +2,12 @@
 
 # %% auto 0
 __all__ = ['PYTHON_VERSION', 'AvCOCO', 'CocoDataset', 'get_bboxes', 'get_overlap_rate', 'bbox_expand', 'DiagnoseCoco', 'to_jpg',
-           'video_to_coco', 'split_coco', 'concat_coco', 'check_save_coco_dict', 'extract_coco', 'v2c',
-           'CocoConverterFromYolo1']
+           'video_to_coco', 'split_coco', 'concat_coco', 'check_save_coco_dict', 'extract_coco', 'v2c']
+
+# %% ../nbs/05_coco_dataset.ipynb 2
+from ._imports import *
 
 # %% ../nbs/05_coco_dataset.ipynb 3
-import json
-import torch
-import os
-import os.path as osp
-import shutil
-import time
-from collections import defaultdict
-
-import matplotlib.pyplot as plt
-import mmcv
-import numpy as np
-import pandas as pd
-from fastcore.script import *
-from pycocotools.cocoeval import COCOeval
-from pycocotools.coco import COCO
-from tqdm import tqdm
-from .visualize import show as av_show
-from .visualize import bbox_visualize
-from loguru import logger
-import copy
-
-# %% ../nbs/05_coco_dataset.ipynb 4
 PYTHON_VERSION = 3
 class AvCOCO(COCO):
     def __init__(self, annotation_file=None, verbose=False):
@@ -155,8 +135,7 @@ class AvCOCO(COCO):
         
 
 
-# %% ../nbs/05_coco_dataset.ipynb 6
-from .visualize import bbox_visualize
+# %% ../nbs/05_coco_dataset.ipynb 5
 class CocoDataset:
     def __init__(self, gt, img_dir=None, pred=None, verbose=False):
         if img_dir is None:
@@ -238,7 +217,7 @@ class CocoDataset:
         cocoEval.accumulate()
         cocoEval.summarize()
 
-# %% ../nbs/05_coco_dataset.ipynb 8
+# %% ../nbs/05_coco_dataset.ipynb 7
 def get_bboxes(anns,category_ids,
                mode='xywh',
                dtype=np.float32,
@@ -302,7 +281,7 @@ def bbox_expand(bb, im_h, im_w, r=1.25):
     return x1, y1, x2-x1, y2-y1
 
 
-# %% ../nbs/05_coco_dataset.ipynb 10
+# %% ../nbs/05_coco_dataset.ipynb 9
 class DiagnoseCoco(CocoDataset):
     COLORS = dict(
         TP=(0, 255, 0),
@@ -311,17 +290,14 @@ class DiagnoseCoco(CocoDataset):
     )
 
     def find_false_samples(self, img_id, score_thr=0.05, visualize=True):
-        from mmcv.ops import bbox_overlaps
         assert self.gt is not None
         assert self.pred is not None
         pred_anns = [ann for ann in self.pred.loadAnns(self.pred.getAnnIds(img_id)) if ann['score']>score_thr]
         gt_anns = self.gt.loadAnns(self.gt.getAnnIds(img_id))
 
         pred_bboxes = get_bboxes(pred_anns,None , mode='xyxy')
-        pred_bboxes = torch.from_numpy(pred_bboxes).cuda().float()
 
         gt_bboxes = get_bboxes(gt_anns, None,mode='xyxy')
-        gt_bboxes = torch.from_numpy(gt_bboxes).cuda().float()
         with torch.no_grad():
             ious = bbox_overlaps(pred_bboxes, gt_bboxes).cpu().numpy()
         mapping_gt_pred = np.where(ious>0)
@@ -351,17 +327,10 @@ class DiagnoseCoco(CocoDataset):
         return result
     
     def imshow(self, img_id, score_thr=0.05, **show_kwargs):
-        from avcv.visualize import show
         img = self.find_false_samples(img_id, score_thr)['vis_img']
         show(img, **show_kwargs)
 
-# %% ../nbs/05_coco_dataset.ipynb 12
-from .utils import video_to_images, multi_thread, get_name
-import os.path as osp
-from glob import glob
-from functools import partial
-from PIL import Image
-from multiprocessing import Pool
+# %% ../nbs/05_coco_dataset.ipynb 11
 def _f(p):
     img = mmcv.imread(p)
     mmcv.imwrite(img, p.replace('.png', '.jpg'))
@@ -433,7 +402,6 @@ def video_to_coco(
         
         
         if not is_done_extracted:
-            logger.info(f'Generating images from {source_type}: {input_video} ->  {osp.abspath(output_dir)}')
             mmcv.mkdir_or_exist(image_out_dir)
             cmd = f"ffmpeg  -i {input_video} -s {im_w}x{im_h} {image_out_dir}/%06d.png"
             logger.info(f'Running command: {cmd}')
@@ -462,7 +430,7 @@ def video_to_coco(
 
 
 
-# %% ../nbs/05_coco_dataset.ipynb 15
+# %% ../nbs/05_coco_dataset.ipynb 14
 def split_coco(coco, train_ratio=0.85, seed=0):
     if isinstance(coco, dict):
         coco = AvCOCO(coco)
@@ -593,7 +561,7 @@ def extract_coco(coco, img_ids):
     return dict(images=imgs, annotations=anns, categories=coco.dataset['categories'])
 
 
-# %% ../nbs/05_coco_dataset.ipynb 19
+# %% ../nbs/05_coco_dataset.ipynb 18
 @call_parse
 def v2c(input_video: Param("path to video", str),
         test_json: Param("path to annotation json path, to get the category", str),
@@ -602,77 +570,3 @@ def v2c(input_video: Param("path to video", str),
         ):
     return video_to_coco(input_video, test_json, output_dir, skip, rescale=rescale, recursive=recursive)
 
-
-# %% ../nbs/05_coco_dataset.ipynb 20
-from fastcore.all import *
-class CocoConverterFromYolo1(object):
-    """
-        Params:\nimage_dir: have the same structure with 'YOLO_ANNOTATION_DIR/obj_train_data'\n
-            yolo_annotation_dir: extracted dir from cvat-yolo1.0 format\n
-
-    """
-    def __init__(self, image_dir = './images/', yolo_annotation_dir = './yolo_annotations/', image_exts=['jpg', 'png', 'jpeg']):
-        # yolo_annotation_dir = osp.normpath(yolo_annotation_dir)
-        store_attr('image_dir, yolo_annotation_dir, image_exts')
-        
-
-        
-    def get_coco_annotations(self, out_path=None):
-        
-        image_paths = []
-        for ext in self.image_exts:
-            img_paths = glob(f'{self.image_dir}**/*.{ext}')
-            image_paths.extend(img_paths)
-            
-        cat_names = [_[:-1] for _ in open(f'{self.yolo_annotation_dir}/obj.names').readlines()]
-        catname2id = {n:i+1 for i, n in enumerate(cat_names)}
-        object_dir = f'{self.yolo_annotation_dir}/obj_train_data'
-        
-        
-        out_dict = dict(images=[], annotations=[], categories=[{'id':catname2id[name], 'name':name} for name in cat_names])
-
-        # def f(image_path):
-        for image_path in image_paths:
-            image = dict(file_name = osp.relpath(image_path, self.image_dir), id=len(out_dict['images']))
-            txt_file_name = image['file_name'].split('.')[0]+'.txt'
-            
-            txt_path = osp.join(object_dir, txt_file_name)
-            width, height = Image.open(image_path).size
-            out_dict['images'].append(image)
-            if osp.exists(txt_path):
-                lines2 = [_[:-1] for _ in open(txt_path)]
-                for i,line in enumerate(lines2): # for loop runs for number of annotations labelled in an image
-                    line = line.split(' ')
-                    bbox_dict = {}
-                    class_id, x_yolo,y_yolo,width_yolo,height_yolo= line[0:]
-                    x_yolo,y_yolo,width_yolo,height_yolo,class_id= float(x_yolo),float(y_yolo),float(width_yolo),float(height_yolo),int(class_id)
-                    bbox_dict['id'] = len(out_dict['annotations'])
-                    bbox_dict['image_id'] = image['id']
-                    bbox_dict['category_id'] = class_id+1
-                    bbox_dict['iscrowd'] = 0 # There is an explanation before
-                    h,w = abs(height_yolo*height),abs(width_yolo*width)
-                    bbox_dict['area']  = h * w
-                    x_coco = round(x_yolo*width -(w/2))
-                    y_coco = round(y_yolo*height -(h/2))
-                    if x_coco <0: #check if x_coco extends out of the image boundaries
-                        x_coco = 1
-                    if y_coco <0: #check if y_coco extends out of the image boundaries
-                        y_coco = 1
-                    bbox_dict['bbox'] = [x_coco,y_coco,w,h]
-                    bbox_dict['segmentation'] = [[x_coco,y_coco,x_coco+w,y_coco, x_coco+w, y_coco+h, x_coco, y_coco+h]]
-                    out_dict['annotations'].append(bbox_dict)
-        # multi_thread(f, image_paths, max_workers=None)
-        
-        self.cc = CocoDataset(out_dict, self.image_dir)
-        if out_path is not None:
-            mmcv.dump(out_dict, out_path)
-        return out_dict
-    
-    def visualize(self, n=9, ret=False):
-        images = []
-        for img_id in np.random.choice(self.cc.img_ids, n):
-            images.append(self.cc.visualize(img_id))
-        # plt.plot(images, mxn=[3,3])
-        plot_images(images, mxn=(3,3))
-        if ret:
-            return images

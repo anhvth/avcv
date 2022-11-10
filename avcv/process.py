@@ -3,18 +3,13 @@
 # %% auto 0
 __all__ = ['multi_thread', 'multi_process']
 
+# %% ../nbs/01_process.ipynb 2
+from ._imports import *
+
 # %% ../nbs/01_process.ipynb 3
-import mmcv
-from loguru import logger
-from IPython import display
 def multi_thread(fn, array_inputs, max_workers=None, 
                  desc="", unit="Samples", 
                  verbose=True, pbar_iterval=10):
-    from concurrent.futures import ThreadPoolExecutor
-    from functools import partial
-    from glob import glob
-    from multiprocessing import Pool
-    from tqdm import tqdm
 
     def _wraper(x):
         i, input = x
@@ -30,8 +25,8 @@ def multi_thread(fn, array_inputs, max_workers=None,
             outputs.update(result)
             if verbose and i%pbar_iterval==0:
                 progress_bar.update(pbar_iterval)
-    if verbose:
-        logger.info('multi_thread {}, {}', fn.__name__, desc)
+    # if verbose:
+        # logger.info('multi_thread {}, {}', fn.__name__, desc)
     outputs = list(outputs.values())
     return outputs
 
@@ -41,11 +36,10 @@ def multi_thread(fn, array_inputs, max_workers=None,
 # %% ../nbs/01_process.ipynb 5
 def multi_process(f, inputs, max_workers=8, desc='',
                unit='Samples', verbose=True, pbar_iterval=10):
-    from multiprocessing import Pool
-    from tqdm import tqdm
     if verbose:
-        pbar = mmcv.ProgressBar(len(inputs))
+        
         logger.info('Multi processing {} | Num samples: {}', f.__name__, len(inputs))
+        pbar = mmcv.ProgressBar(len(inputs))
         
     with Pool(max_workers) as p:
         it = p.imap(f, inputs)
@@ -54,7 +48,7 @@ def multi_process(f, inputs, max_workers=8, desc='',
         return_list = []
         for i, ret in enumerate(it):
             return_list.append(ret)
-            if i % pbar_iterval == 0:
+            if i % pbar_iterval == 0 and verbose:
                 pbar.update(pbar_iterval)
     return return_list
 

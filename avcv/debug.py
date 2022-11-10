@@ -4,17 +4,9 @@
 __all__ = ['make_mini_coco', 'dpython']
 
 # %% ../nbs/04_debug.ipynb 2
-import os
-import os.path as osp
-import matplotlib.pyplot as plt
-import numpy as np
-import mmcv
-from fastcore.script import *
-import shutil
-from loguru import logger
-import mmcv
+from ._imports import *
 
-
+# %% ../nbs/04_debug.ipynb 3
 @call_parse
 def make_mini_coco(json_path: Param(),
                    image_prefix: Param(),
@@ -23,7 +15,6 @@ def make_mini_coco(json_path: Param(),
     """
         Helper function for creating a mini-dataset ensembles it's father
     """
-    from pycocotools.coco import COCO
     new_img_prefix = osp.join(out_dir, "images")
 
     out_json = os.path.join(out_dir, "annotations", "mini_json.json")
@@ -58,7 +49,7 @@ def make_mini_coco(json_path: Param(),
     logger.info(f"{out_json}, {new_img_prefix}")
     return out_json, new_img_prefix
 
-# %% ../nbs/04_debug.ipynb 3
+# %% ../nbs/04_debug.ipynb 4
 @call_parse
 def dpython(cmd: Param(type=str)):
     for _ in range(3):
