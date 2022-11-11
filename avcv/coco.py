@@ -9,7 +9,9 @@ from ._imports import *
 
 # %% ../nbs/05_coco_dataset.ipynb 3
 PYTHON_VERSION = 3
-class AvCOCO(COCO):
+
+
+class AvCOCO(coco.COCO):
     def __init__(self, annotation_file=None, verbose=False):
         """
         Constructor of Microsoft COCO helper class for reading and visualizing annotations.
@@ -75,7 +77,7 @@ class AvCOCO(COCO):
         :param   resFile (str)     : file name of result file
         :return: res (obj)         : result api object
         """
-        res = COCO()
+        res = coco.COCO()
         res.dataset['images'] = [img for img in self.dataset['images']]
         if self.verbose:
             logger.info('Loading and preparing results...')
@@ -147,7 +149,7 @@ class CocoDataset:
                 logger.warning(f'Img dir is not set, set to :{img_dir}')
             # assert osp.isdir(img_dir)
             
-        if isinstance(gt, COCO):
+        if isinstance(gt, coco.COCO):
             gt = gt.dataset
         self.gt = AvCOCO(gt, verbose=verbose)
 
