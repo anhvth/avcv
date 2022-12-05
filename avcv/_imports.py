@@ -25,7 +25,7 @@ from PIL import Image
 from tqdm import tqdm
 # from .lazy_modules import LazyModule
 from lazy_module.core import LazyModule
-
+import copy
 mmcv = LazyModule('mmcv')
 np = LazyModule('numpy')
 cv2 = LazyModule('cv2')

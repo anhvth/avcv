@@ -469,8 +469,9 @@ def concat_coco(datasets, new_root, name=None, cat_name2id=None, categories=None
     if cat_name2id is None:
         all_cat_name = []
         for dataset in datasets:
+            av_coco = AvCOCO(dataset[0])
             all_cat_name.extend(
-                [cat['name'].lower() for cat in AvCOCO(dataset[0]).cats.values()])
+                [cat['name'].lower() for cat in av_coco.cats.values()])
 
         all_cat_name = list(set(all_cat_name))
         cat_name2id = {name: i + 1 for i, name in enumerate(all_cat_name)}
@@ -501,9 +502,9 @@ def concat_coco(datasets, new_root, name=None, cat_name2id=None, categories=None
     
     for json_path, old_img_dir in datasets:
 
-        if isinstance(json_path, str):
+        if isinstance(json_path, str) or isinstance(json_path, dict):
             dataset = AvCOCO(json_path)
-        else:
+        else :
             dataset = json_path
         for img_id in dataset.imgs:
             image = dataset.imgs[img_id]

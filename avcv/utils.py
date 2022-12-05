@@ -92,7 +92,12 @@ def imemoize(func):
 
 # %% ../nbs/03_utils.ipynb 5
 def is_interactive():
-    return not hasattr('main', '__file__')
+    try:
+        shell = get_ipython().__class__.__name__
+        return True
+    except:
+        return False
+    
 
 def get_name(path):
     path = osp.basename(path).split('.')[:-1]
