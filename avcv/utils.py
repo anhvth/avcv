@@ -239,6 +239,7 @@ def images_to_video(
     if isinstance(images[0], str) or resize:
         if verbose:
             logger.info('Read and resize images to shape {}'.format(output_size))
+        from avcv.all import multi_thread
         images = multi_thread(f, images, verbose=verbose)
     
     if verbose:
@@ -279,7 +280,7 @@ def av_i2v(
 # %% ../nbs/03_utils.ipynb 9
 class TimeLoger:
     def __init__(self):
-        self.timer = Timer()
+        self.timer = mmcv.Timer()
         self.time_dict = dict()
 
     def start(self):
