@@ -3,7 +3,7 @@
 # %% auto 0
 __all__ = ['ICACHE', 'VERBOSE', 'AVCV_CACHE_DIR', 'identify', 'self_memoize', 'memoize', 'imemoize', 'is_interactive', 'get_name',
            'get_files', 'find_contours', 'mkdir', 'put_text', 'video_to_images', 'v2i', 'images_to_video', 'av_i2v',
-           'TimeLoger', 'generate_tmp_filename', 'get_md5', 'printc']
+           'md5_from_str', 'VideoReader', 'TimeLoger', 'generate_tmp_filename', 'get_md5', 'printc']
 
 # %% ../nbs/03_utils.ipynb 1
 from ._imports import *
@@ -239,7 +239,6 @@ def images_to_video(
     if isinstance(images[0], str) or resize:
         if verbose:
             logger.info('Read and resize images to shape {}'.format(output_size))
-        from avcv.all import multi_thread
         images = multi_thread(f, images, verbose=verbose)
     
     if verbose:
@@ -278,9 +277,53 @@ def av_i2v(
 
 
 # %% ../nbs/03_utils.ipynb 9
+def md5_from_str(s:str):
+    import hashlib
+    return hashlib.md5(s.encode('utf-8')).hexdigest()
+
+class VideoReader:
+    def __init__(self, file_name, scale=0.5, mode='gray', verbose=True):
+        assert mode in ['rgb', 'gray']
+        self.video = mmcv.VideoReader(file_name)
+        hash_name = md5_from_str(osp.abspath(file_name))
+        cache_file = osp.join(AVCV_CACHE_DIR, 'VideoReader/{}_{}.array'.format(hash_name, get_name(file_name)))
+        
+        self.height = int(self.video.height*scale)
+        self.width = int(self.video.width*scale)
+        self.mode = mode
+        if osp.exists(cache_file):
+            self._imgs = np.memmap(cache_file, mode='r', shape=(len(self.video), self.height, self.width, 1 if self.mode == 'gray' else 3))
+        else:
+            os.makedirs(osp.dirname(cache_file), exist_ok=True)
+            try:
+                self._imgs = np.memmap(cache_file, mode='w+', shape=(len(self.video), self.height, self.width, 1 if self.mode == 'gray' else 3))
+                print('Expected size: {:0.2f} gb'.format(self._imgs.size/1024/1024/1024))
+                pbar = range(len(self))
+                if verbose: pbar = tqdm(pbar)
+                for i in pbar:
+                    img = self.video[i]
+                    img = mmcv.imresize(img, (self.width, self.height))
+                    if mode == 'gray' and len(img.shape) == 3:
+                        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)[...,None]
+                    else:
+                        img = img[...,::-1].copy()
+                    self._imgs[i] = img
+            except Exception as e:
+                print(e)
+                os.remove(cache_file)
+        self.cache_file = cache_file
+        
+    def __len__(self):
+        return len(self.video)
+    
+    def __getitem__(self, idx):
+        return self._imgs[idx]
+    
+
+# %% ../nbs/03_utils.ipynb 15
 class TimeLoger:
     def __init__(self):
-        self.timer = mmcv.Timer()
+        self.timer = Timer()
         self.time_dict = dict()
 
     def start(self):
@@ -304,7 +347,7 @@ class TimeLoger:
             s += f'\t\t{k}:  \t\t{percent:0.2f}% ({average:0.4f}s) | Times: {times} \n'
         return s
 
-# %% ../nbs/03_utils.ipynb 10
+# %% ../nbs/03_utils.ipynb 16
 def generate_tmp_filename():
     return tempfile.NamedTemporaryFile().name 
 @memoize
@@ -320,10 +363,10 @@ def get_md5(video_path, os_system='linux'):
     return md5
 
 
-# %% ../nbs/03_utils.ipynb 13
+# %% ../nbs/03_utils.ipynb 20
 # DB =  ipdb.set_trace
 
-# %% ../nbs/03_utils.ipynb 14
+# %% ../nbs/03_utils.ipynb 21
 def printc(module_or_func, verbose=True, return_lines=False):
     """
         Print code given a 
