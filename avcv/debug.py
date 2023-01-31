@@ -7,8 +7,6 @@ __all__ = ['make_mini_coco', 'dpython']
 from ._imports import *
 
 # %% ../nbs/04_debug.ipynb 3
-from pycocotools.coco import COCO
-import shutil
 @call_parse
 def make_mini_coco(json_path: Param(),
                    image_prefix: Param(),
@@ -43,9 +41,9 @@ def make_mini_coco(json_path: Param(),
         )
         for img in imgs:
             path = osp.join(image_prefix, img['file_name'])
-            new_path = osp.abspath(osp.join(new_img_prefix, img['file_name']))
+            new_path = osp.join(new_img_prefix, img['file_name'])
             mmcv.mkdir_or_exist(osp.dirname(new_path))
-            shutil.copy(osp.abspath(path), new_path)
+            shutil.copy(path, new_path)
 
         mmcv.dump(out_dict, out_json)
     logger.info(f"{out_json}, {new_img_prefix}")
