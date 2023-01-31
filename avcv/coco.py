@@ -140,6 +140,8 @@ class AvCOCO(coco.COCO):
 
 # %% ../nbs/05_coco_dataset.ipynb 5
 from .visualize import bbox_visualize, show as av_show
+#import COCOeval
+
 
 class CocoDataset:
     def __init__(self, gt, img_dir=None, pred=None, verbose=False):
@@ -217,10 +219,12 @@ class CocoDataset:
         return anns
 
     def evaluate(self, *args, **kwargs):
+        from pycocotools.cocoeval import COCOeval
         cocoEval = COCOeval(self.gt, self.pred, 'bbox')
         cocoEval.evaluate()
         cocoEval.accumulate()
         cocoEval.summarize()
+
 
 # %% ../nbs/05_coco_dataset.ipynb 9
 def get_bboxes(anns,category_ids,
@@ -467,6 +471,16 @@ def concat_coco(datasets, new_root, name=None, cat_name2id=None, categories=None
 
             ], '/data/face_food_concat/', 'train');
         """
+    # If datasets if a list of string
+    if isinstance(datasets[0], str):
+        inputs = []
+        # for j in datasets:
+        def f(j):
+            cc = CocoDataset(j)
+            return (cc.gt.dataset, cc.img_dir)
+        from avcv.all import multi_thread
+        datasets = multi_thread(f, datasets)
+            
     if cat_name2id is None:
         if identical_cat_name:
             av_coco = AvCOCO(datasets[0][0])
