@@ -299,6 +299,8 @@ class DiagnoseCoco(CocoDataset):
     )
 
     def find_false_samples(self, img_id, score_thr=0.05, visualize=True):
+        import torch
+        from mmcv.ops import bbox_overlaps
         assert self.gt is not None
         assert self.pred is not None
         pred_anns = [ann for ann in self.pred.loadAnns(self.pred.getAnnIds(img_id)) if ann['score']>score_thr]
@@ -336,6 +338,7 @@ class DiagnoseCoco(CocoDataset):
         return result
     
     def imshow(self, img_id, score_thr=0.05, **show_kwargs):
+        from avcv.visualize import show
         img = self.find_false_samples(img_id, score_thr)['vis_img']
         show(img, **show_kwargs)
 
@@ -554,9 +557,13 @@ def concat_coco(datasets, new_root, name=None, cat_name2id=None, categories=None
 
     if name is not None:
         out_json_path = osp.join(new_root, f'annotations/{name}.json')
-        logger.info('Dump->{}', out_json_path)
+        logger.info('Annotation is saved to: {}', out_json_path)
         check_save_coco_dict(out_concat)
         mmcv.dump(out_concat, out_json_path)
+    # Summary num of images, annotations and categories
+    logger.info('Summary:'
+    ' {} images, {} annotations'.format(len(out_concat['images']), out_concat['annotations'])
+    )
     return out_concat
 
 
