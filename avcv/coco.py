@@ -298,22 +298,31 @@ class DiagnoseCoco(CocoDataset):
         FP=(0,255,255), # Wrong detection
     )
 
-    def find_false_samples(self, img_id, score_thr=0.05, visualize=True):
+    def find_false_samples(self, img_id, score_thr=0.05, visualize=True, device='cuda:7'):
         import torch
+        # from cython_bbox import bbox_overlaps
         from mmcv.ops import bbox_overlaps
+
+
         assert self.gt is not None
         assert self.pred is not None
+        result = dict(tp=[], fn=[], fp=[])
         pred_anns = [ann for ann in self.pred.loadAnns(self.pred.getAnnIds(img_id)) if ann['score']>score_thr]
         gt_anns = self.gt.loadAnns(self.gt.getAnnIds(img_id))
-
+        if len(pred_anns) == 0 and len(gt_anns)==0:
+            return result
+        
         pred_bboxes = get_bboxes(pred_anns,None , mode='xyxy')
-
         gt_bboxes = get_bboxes(gt_anns, None,mode='xyxy')
+        
         with torch.no_grad():
+            pred_bboxes = torch.from_numpy(pred_bboxes).to(device)
+            gt_bboxes = torch.from_numpy(gt_bboxes).to(device)
             ious = bbox_overlaps(pred_bboxes, gt_bboxes).cpu().numpy()
+            
         mapping_gt_pred = np.where(ious>0)
 
-        result = dict(tp=[], fn=[], fp=[])
+        
 
         gt_ids = list(range(len(gt_anns)))
         pred_ids = list(range(len(pred_anns)))
@@ -332,15 +341,11 @@ class DiagnoseCoco(CocoDataset):
             vis_img = self.visualize(img_id, anns=result['fn'], color=self.COLORS['FN'], show=False, box_color=self.COLORS['FN'])
             vis_img = self.visualize(img_id,  anns=result['tp'],img=vis_img, show=False,box_color=self.COLORS['TP'])
             vis_img = self.visualize(img_id, anns=result['fp'], dpi=150,color=self.COLORS['FP'], show=False,
-                                     img=vis_img, box_color=self.COLORS['FP'])
+                                    img=vis_img, box_color=self.COLORS['FP'])
             vis_img = vis_img[...,::-1].copy()
             result['vis_img'] = vis_img
         return result
-    
-    def imshow(self, img_id, score_thr=0.05, **show_kwargs):
-        from avcv.visualize import show
-        img = self.find_false_samples(img_id, score_thr)['vis_img']
-        show(img, **show_kwargs)
+
 
 # %% ../nbs/05_coco_dataset.ipynb 13
 def _f(p):
