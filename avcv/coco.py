@@ -567,7 +567,7 @@ def concat_coco(datasets, new_root, name=None, cat_name2id=None, categories=None
         mmcv.dump(out_concat, out_json_path)
     # Summary num of images, annotations and categories
     logger.info('Summary:'
-    ' {} images, {} annotations'.format(len(out_concat['images']), out_concat['annotations'])
+    ' {} images, {} annotations'.format(len(out_concat['images']), len(out_concat['annotations']))
     )
     return out_concat
 
