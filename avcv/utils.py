@@ -323,7 +323,7 @@ class VideoReader:
 # %% ../nbs/03_utils.ipynb 15
 class TimeLoger:
     def __init__(self):
-        self.timer = Timer()
+        self.timer = mmcv.Timer()
         self.time_dict = dict()
 
     def start(self):
