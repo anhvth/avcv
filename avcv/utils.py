@@ -3,7 +3,8 @@
 # %% auto 0
 __all__ = ['ICACHE', 'VERBOSE', 'AVCV_CACHE_DIR', 'identify', 'self_memoize', 'memoize', 'imemoize', 'is_interactive', 'get_name',
            'get_files', 'find_contours', 'mkdir', 'put_text', 'video_to_images', 'v2i', 'images_to_video', 'av_i2v',
-           'md5_from_str', 'VideoReader', 'TimeLoger', 'generate_tmp_filename', 'get_md5', 'printc']
+           'md5_from_str', 'VideoReader', 'TimeLoger', 'generate_tmp_filename', 'get_md5', 'np_memap_saver',
+           'np_memap_loader', 'printc']
 
 # %% ../nbs/03_utils.ipynb 1
 from ._imports import *
@@ -363,10 +364,49 @@ def get_md5(video_path, os_system='linux'):
     return md5
 
 
-# %% ../nbs/03_utils.ipynb 20
+# %% ../nbs/03_utils.ipynb 18
+def np_memap_saver(data, path, dtype):
+    """
+        Example:
+            np_memap_saver(raw_data, 'raw.array', np.float16)
+            raw_data2 = np_memap_loader('raw.array', np.float16)
+    """
+    meta = {}
+    start = 0
+
+    for i, elem in enumerate(data):
+        meta[i] = dict(
+            shape=elem.shape,
+            start=start,
+        )
+        start += np.prod(elem.shape)
+
+    l = start
+    data_1d = np.memmap(path, dtype=dtype, mode='w+', shape=l)
+    def _save(elemi):
+        elem, i = elemi
+        data_1d[meta[i]['start']:meta[i]['start'] + np.prod(meta[i]['shape'])] = elem.ravel().astype(dtype)
+    
+    inputs = [(elem, i) for i, elem in enumerate(data)]
+    multi_thread(_save, inputs, max_workers=32, pbar_iterval=100)
+
+
+def np_memap_loader(path, dtype):
+    data_1d = np.memmap(path, dtype=dtype, mode='r')
+    data_shape = np.load(path + '_shape.npy')
+    data = []
+    start = 0
+    for shape in data_shape:
+        end = start + np.prod(shape)
+        data.append(data_1d[start:end].reshape(shape))
+        start = end
+    return data
+
+
+# %% ../nbs/03_utils.ipynb 22
 # DB =  ipdb.set_trace
 
-# %% ../nbs/03_utils.ipynb 21
+# %% ../nbs/03_utils.ipynb 23
 def printc(module_or_func, verbose=True, return_lines=False):
     """
         Print code given a 
