@@ -3,8 +3,8 @@
 # %% auto 0
 __all__ = ['ICACHE', 'VERBOSE', 'AVCV_CACHE_DIR', 'identify', 'self_memoize', 'memoize', 'imemoize', 'is_interactive', 'get_name',
            'get_files', 'find_contours', 'mkdir', 'put_text', 'video_to_images', 'v2i', 'images_to_video', 'av_i2v',
-           'md5_from_str', 'VideoReader', 'TimeLoger', 'generate_tmp_filename', 'get_md5', 'np_memap_saver',
-           'np_memap_loader', 'printc']
+           'md5_from_str', 'VideoReader', 'TimeLoger', 'generate_tmp_filename', 'get_md5', 'np_memmap_saver',
+           'np_memmap_loader', 'printc']
 
 # %% ../nbs/03_utils.ipynb 1
 from ._imports import *
@@ -365,7 +365,7 @@ def get_md5(video_path, os_system='linux'):
 
 
 # %% ../nbs/03_utils.ipynb 18
-def np_memap_saver(data, path, dtype):
+def np_memmap_saver(data, path, dtype):
     """
         Example:
             np_memap_saver(raw_data, 'raw.array', np.float16)
@@ -391,7 +391,7 @@ def np_memap_saver(data, path, dtype):
     multi_thread(_save, inputs, max_workers=32, pbar_iterval=100)
 
 
-def np_memap_loader(path, dtype):
+def np_memmap_loader(path, dtype):
     data_1d = np.memmap(path, dtype=dtype, mode='r')
     data_shape = np.load(path + '_shape.npy')
     data = []
