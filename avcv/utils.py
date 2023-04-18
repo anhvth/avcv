@@ -277,7 +277,7 @@ def av_i2v(
             )
 
 
-# %% ../nbs/03_utils.ipynb 9
+# %% ../nbs/03_utils.ipynb 8
 def md5_from_str(s:str):
     import hashlib
     return hashlib.md5(s.encode('utf-8')).hexdigest()
@@ -321,7 +321,7 @@ class VideoReader:
         return self._imgs[idx]
     
 
-# %% ../nbs/03_utils.ipynb 15
+# %% ../nbs/03_utils.ipynb 14
 class TimeLoger:
     def __init__(self):
         self.timer = mmcv.Timer()
@@ -348,7 +348,7 @@ class TimeLoger:
             s += f'\t\t{k}:  \t\t{percent:0.2f}% ({average:0.4f}s) | Times: {times} \n'
         return s
 
-# %% ../nbs/03_utils.ipynb 16
+# %% ../nbs/03_utils.ipynb 15
 def generate_tmp_filename():
     return tempfile.NamedTemporaryFile().name 
 @memoize
@@ -364,7 +364,7 @@ def get_md5(video_path, os_system='linux'):
     return md5
 
 
-# %% ../nbs/03_utils.ipynb 18
+# %% ../nbs/03_utils.ipynb 17
 def np_memmap_saver(data, path, dtype):
     """
         Example:
@@ -373,22 +373,27 @@ def np_memmap_saver(data, path, dtype):
     """
     meta = {}
     start = 0
-
+    shapes = []
     for i, elem in enumerate(data):
         meta[i] = dict(
             shape=elem.shape,
             start=start,
         )
         start += np.prod(elem.shape)
+        shapes.append(meta[i]['shape'])
 
     l = start
+    np.save(path+'_shape', shapes)
+
     data_1d = np.memmap(path, dtype=dtype, mode='w+', shape=l)
     def _save(elemi):
         elem, i = elemi
         data_1d[meta[i]['start']:meta[i]['start'] + np.prod(meta[i]['shape'])] = elem.ravel().astype(dtype)
     
     inputs = [(elem, i) for i, elem in enumerate(data)]
+    from avcv.all import multi_thread
     multi_thread(_save, inputs, max_workers=32, pbar_iterval=100)
+    
 
 
 def np_memmap_loader(path, dtype):
@@ -403,10 +408,10 @@ def np_memmap_loader(path, dtype):
     return data
 
 
-# %% ../nbs/03_utils.ipynb 22
+# %% ../nbs/03_utils.ipynb 21
 # DB =  ipdb.set_trace
 
-# %% ../nbs/03_utils.ipynb 23
+# %% ../nbs/03_utils.ipynb 22
 def printc(module_or_func, verbose=True, return_lines=False):
     """
         Print code given a 
