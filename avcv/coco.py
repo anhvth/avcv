@@ -2,7 +2,8 @@
 
 # %% auto 0
 __all__ = ['PYTHON_VERSION', 'AvCOCO', 'CocoDataset', 'get_bboxes', 'get_overlap_rate', 'bbox_expand', 'DiagnoseCoco', 'to_jpg',
-           'video_to_coco', 'split_coco', 'concat_coco', 'check_save_coco_dict', 'extract_coco', 'v2c']
+           'video_to_coco', 'split_coco', 'concat_coco', 'check_save_coco_dict', 'extract_coco', 'concat_coco_v2',
+           'v2c']
 
 # %% ../nbs/05_coco_dataset.ipynb 2
 from ._imports import *
@@ -594,6 +595,32 @@ def extract_coco(coco, img_ids):
     anns = coco.loadAnns(coco.getAnnIds(img_ids))
     return dict(images=imgs, annotations=anns, categories=coco.dataset['categories'])
 
+from typing import List, Dict
+
+def concat_coco_v2(coco_datasets:List[CocoDataset], new_root:str, set_name:str='train', cat_name2id:Dict=None):
+    out_ann_path = osp.join(new_root, f'annotations/{set_name}.json')
+    if cat_name2id is None:
+        logger.info('Use first item of coco_datasets to create cat_name2id')
+        cat_name2id = {c['name']:c['id'] for c in datasets[0].gt.cats.values()}
+        
+    out = dict(images=[], categories=[dict(id=id, name=name) for name, id in cat_name2id.items()], annotations=[])
+    new_root_image = osp.join(new_root, 'images')
+    for cc in tqdm(coco_datasets):
+        for img_id, img in cc.gt.imgs.items():
+            img = img.copy()
+            abs_path = osp.abspath(osp.join(cc.img_dir, img['file_name']))
+            new_filename = osp.relpath(abs_path, new_root_image)
+            new_img_id = len(out['images'])
+            img['id'] = new_img_id
+            for ann in cc.gt.imgToAnns[new_img_id]:
+                ann = ann.copy()
+                ann['image_id'] = new_img_id
+                cat_name = cc.gt.cats[ann['category_id']]['name']
+                ann['category_id'] = cat_name2id[cat_name]
+                ann['id'] = len(out['annotations'])
+    
+    mmcv.dump(out, out_ann_path)
+    logger.success(f'{out_ann_path=}\n{new_root=}')
 
 # %% ../nbs/05_coco_dataset.ipynb 19
 @call_parse
