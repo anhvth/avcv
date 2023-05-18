@@ -164,17 +164,60 @@ class CocoDataset:
 
         self.img_dir = img_dir
         self.img_ids = [_['id'] for _ in self.gt.imgs.values()]
-
+    
+    def __str__(self):
+        return 'Num images: {}, num annotations: {}, num images with annotations {}'.format(
+            len(self.img_ids),
+            len(self.gt.anns),
+            len(self.gt.imgToAnns),
+        )
+    
+    @property
+    def img_ids_with_ann(self):
+        return list(self.gt.imgToAnns.keys())
+    
     def imread(self, img_id, channel_order='bgr'):
-        im = self.gt.imgs[img_id]
-        img_path = osp.abspath(osp.join(self.img_dir,im['file_name']))
+        img_path = self.get_image_path(img_id)
         assert osp.exists(img_path), img_path
         return mmcv.imread(img_path, channel_order=channel_order)
+    
+    def __len__(self):
+        return len(self.img_ids)
+    
+    @property
+    def image_paths(self):
+        if not hasattr(self, '_image_paths'):
+            _image_paths = []
+            for img_id in self.img_ids:
+                _image_paths.append(self.get_image_path(img_id))
+            self._image_paths = _image_paths
+            
+        return self._image_paths
+    
+    def get_image_path(self, img_id):
+        im = self.gt.imgs[img_id]
+        img_path = osp.abspath(osp.join(self.img_dir,im['file_name']))
+        return img_path
+    
+    def get_anns(self, img_id, mode='gt'):
+        assert mode == 'gt' or mode == 'pred'
+        avcc:AvCOCO = self.gt if mode == 'gt' else self.pred
+        return avcc.imgToAnns[img_id]
+    
+    def get_pair_img_anns(self,img_id, mode='gt'):
+        assert mode == 'gt' or mode == 'pred'
+        avcc:AvCOCO = self.gt if mode == 'gt' else self.pred
+        return avcc.imgs[img_id], avcc.imgToAnns[img_id]
+        
 
+        
     def visualize(self, img_id=None,  mode='gt', dpi=100, 
-        show=False, anns=None, color='green', img=None, score_thr=0.3, box_color=None):
+        show=False, anns=None, color='green', img=None, score_thr=0.3, box_color=None, with_ann=False):
         if img_id is None:
-            img_id = np.random.choice(self.img_ids)
+            if with_ann:
+                img_id = np.random.choice(self.img_ids_with_ann)
+            else:
+                img_id = np.random.choice(self.img_ids)
             logger.info(f'Random visualize img_id={img_id}')
         if img is None:
             img= self.imread(img_id)
@@ -597,30 +640,38 @@ def extract_coco(coco, img_ids):
 
 from typing import List, Dict
 
-def concat_coco_v2(coco_datasets:List[CocoDataset], new_root:str, set_name:str='train', cat_name2id:Dict=None):
-    out_ann_path = osp.join(new_root, f'annotations/{set_name}.json')
+def concat_coco_v2(coco_datasets:List[CocoDataset], new_root:str, set_name:str=None, cat_name2id:Dict=None):
+    
     if cat_name2id is None:
         logger.info('Use first item of coco_datasets to create cat_name2id')
-        cat_name2id = {c['name']:c['id'] for c in datasets[0].gt.cats.values()}
+        cat_name2id = {c['name']:c['id'] for c in coco_datasets[0].gt.cats.values()}
         
     out = dict(images=[], categories=[dict(id=id, name=name) for name, id in cat_name2id.items()], annotations=[])
     new_root_image = osp.join(new_root, 'images')
-    for cc in tqdm(coco_datasets):
-        for img_id, img in cc.gt.imgs.items():
+    for coco_dataset in tqdm(coco_datasets):
+        for img_id, img in coco_dataset.gt.imgs.items():
             img = img.copy()
-            abs_path = osp.abspath(osp.join(cc.img_dir, img['file_name']))
-            new_filename = osp.relpath(abs_path, new_root_image)
+            anns = coco_dataset.gt.imgToAnns[img_id]
+            abs_path = osp.abspath(osp.join(coco_dataset.img_dir, img['file_name']))
+            img['file_name'] = osp.relpath(abs_path, new_root_image)
             new_img_id = len(out['images'])
             img['id'] = new_img_id
-            for ann in cc.gt.imgToAnns[new_img_id]:
+            out['images'].append(img)
+            
+            for ann in anns:
                 ann = ann.copy()
                 ann['image_id'] = new_img_id
-                cat_name = cc.gt.cats[ann['category_id']]['name']
+                cat_name = coco_dataset.gt.cats[ann['category_id']]['name']
                 ann['category_id'] = cat_name2id[cat_name]
                 ann['id'] = len(out['annotations'])
-    
-    mmcv.dump(out, out_ann_path)
-    logger.success(f'{out_ann_path=}\n{new_root=}')
+                out['annotations'].append(ann)
+                
+    if set_name is not None:
+        out_ann_path = osp.join(new_root, f'annotations/{set_name}.json')
+        mmcv.dump(out, out_ann_path)
+        logger.success(f'{out_ann_path=}\n{new_root=}')
+        
+    return CocoDataset(out, new_root_image)
 
 # %% ../nbs/05_coco_dataset.ipynb 19
 @call_parse
