@@ -31,7 +31,7 @@ np = LazyModule('numpy')
 cv2 = LazyModule('cv2')
 matplotlib = LazyModule('matplotlib')
 plt = LazyModule('plt', 'import matplotlib.pyplot as plt')
-coco = LazyModule('coco', 'from pycocotools import coco')
+# coco = LazyModule('coco', 'from pycocotools import coco')
 ipdb = LazyModule('ipdb')
 pd = LazyModule('pandas')
 #import ipdb, cv2, matplotlib.pyplot as plt, mmcv, numpy as np, matplotlib
