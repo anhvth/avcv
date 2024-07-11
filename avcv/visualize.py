@@ -54,11 +54,114 @@ def plot_images(images,
         plt.savefig(out_file)
         logger.info('Save fig:', out_file)
         plt.close()
-def imshow(inp,  dpi=100, size=10, cmap='gray', out_file=None):
+
+
+def _to_bchw(tensor, format):
+    if 'b' in format:
+        if 'c' in format:
+            target = 'bchw'
+        else:
+            target = 'bhwc'
+        tensor = torch.einsum(f'{format}->{target}', tensor)
+        if target == 'bhwc':
+            tensor = tensor.permute(0, 3, 1, 2)  # bhwc -> bchw
+    else:
+        if 'c' in format:
+            target = 'chw'
+            tensor = torch.einsum(f'{format}->{target}', tensor)
+            tensor = tensor.unsqueeze(0)  # add batch dimension
+        else:
+            tensor = tensor.unsqueeze(0).unsqueeze(0)  # add batch and channel dimensions
+    
+    return tensor
+
+
+def _detect_format(tensor):
+    tensor_shape = tensor.shape
+    ndim = len(tensor_shape)
+
+    if ndim == 2:
+        return "hw"
+    elif ndim == 3:
+        if 3 in tensor_shape or 1 in tensor_shape:
+            if tensor_shape[-1] in (3, 1):
+                return "hwc"
+            elif tensor_shape[0] in (3, 1):
+                return "chw"
+        else:
+            if tensor_shape[0] < tensor_shape[1] and tensor_shape[0] < tensor_shape[2]:
+                return "bhw"
+            else:
+                return "HWB"
+    elif ndim == 4:
+        if tensor_shape[1] in (3, 1):
+            return "BCHW"
+        elif tensor_shape[3] in (3, 1):
+            return "BHWC"
+        elif tensor_shape[0] in (3, 1):
+            return "CBHW"
+        else:
+            print(tensor.shape)
+            raise
+    else:
+        raise
+
+
+
+
+def tensor_to_image(img_tensor, to_pil=False):
+
+    def _to_grid(bchw):
+        # Ensure input is BCHW format
+        assert len(bchw.shape) == 4, "Input array must be BCHW format"
+        
+        # Convert numpy array to torch tensor if necessary
+        if isinstance(bchw, np.ndarray):
+            bchw = torch.from_numpy(bchw)
+        
+        from torchvision.utils import make_grid
+
+        # Use make_grid function
+        grid = make_grid(bchw, nrow=int(math.sqrt(bchw.shape[0])), padding=0)
+        
+        # Convert to HWC format and return as numpy array
+        return grid.permute(1, 2, 0).cpu().numpy()
+    import torch
+    def handle_range(img_tensor):    
+        min_val, max_val = img_tensor.min(), img_tensor.max()
+        if 0 <= min_val and max_val <= 1:
+            img_tensor = (img_tensor * 255).round()
+        elif min_val < 0 or max_val > 255:
+            img_tensor = ((img_tensor - min_val) / (max_val - min_val) * 255).round()
+        
+        return img_tensor
+
+    if isinstance(img_tensor, np.ndarray): 
+        img_tensor = torch.from_numpy(img_tensor)
+
+    format = _detect_format(img_tensor).lower()
+    bchw = _to_bchw(img_tensor, format).cpu().numpy()
+    img_tensor = _to_grid(bchw)
+    
+    img_tensor = handle_range(img_tensor)
+    
+    if img_tensor.ndim == 2:
+        img_tensor = np.stack([img_tensor] * 3, axis=-1)
+    elif img_tensor.shape[-1] == 1:
+        img_tensor = np.concatenate([img_tensor] * 3, axis=-1)
+    
+    img_tensor =  img_tensor.astype(np.uint8)
+    if to_pil:
+        img_tensor = Image.fromarray(img_tensor)
+    return img_tensor
+
+
+def imshow(inp,  dpi=100, size=10, cmap='gray', out_file=None, auto_convert_input=True):
     """
         Input: either a path or image
     """
-    # inp = mmcv.imread(inp)
+    if auto_convert_input:
+        inp = tensor_to_image(inp)
     if len(inp.shape) == 4:
         inp = inp[0]
     inp = np.squeeze(inp)
@@ -74,6 +177,7 @@ def imshow(inp,  dpi=100, size=10, cmap='gray', out_file=None):
     else:
         plt.savefig(out_file)
     plt.close()
+
 show = imshow
 
 # %% ../nbs/00_visualize.ipynb 9
@@ -246,7 +350,7 @@ class Board:
         self.colors = colors
         self.img_board = None
         if colors is None:
-            self.colors = mplCOCO_COLORS[:num_lines]
+            self.colors = COCO_COLORS[:num_lines]
     
     def draw(self):
         for i, text in enumerate(self.texts):
