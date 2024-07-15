@@ -140,7 +140,7 @@ class AvCOCO(coco.COCO):
 
 
 # %% ../nbs/05_coco_dataset.ipynb 5
-from .visualize import bbox_visualize, imshow as av_show
+from .visualize import bbox_visualize, show as av_show
 #import COCOeval
 
 
@@ -681,4 +681,3 @@ def v2c(input_video: Param("path to video", str),
         skip: Param("", int) = 1,        rescale: Param("", int) = None, recursive: Param("Images recursive", bool)=False
         ):
     return video_to_coco(input_video, test_json, output_dir, skip, rescale=rescale, recursive=recursive)
-
