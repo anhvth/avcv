@@ -140,7 +140,7 @@ class AvCOCO(coco.COCO):
 
 
 # %% ../nbs/05_coco_dataset.ipynb 5
-from .visualize import bbox_visualize, show as av_show
+from .visualize import bbox_visualize, imshow as av_show
 #import COCOeval
 
 
