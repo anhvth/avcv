@@ -178,7 +178,7 @@ def imshow(inp,  dpi=100, size=10, cmap='gray', out_file=None, auto_convert_inpu
         plt.savefig(out_file)
     plt.close()
 
-# %% ../nbs/00_visualize.ipynb 9
+# %% ../nbs/00_visualize.ipynb 8
 def tensor2imgs(tensor, mode='bhwc', 
                     mean=(123.675, 116.28, 103.53), std= (58.395, 57.120000000000005, 57.375), **kwargs):
     tensor = tensor.cpu()
@@ -193,7 +193,7 @@ def tensor2imgs(tensor, mode='bhwc',
         return tensor2imgs(tensor, mode='bchw', std=std, mean=mean)[0]
     return mmcv.tensor2imgs(tensor, mean=mean, std=std, **kwargs)
 
-# %% ../nbs/00_visualize.ipynb 12
+# %% ../nbs/00_visualize.ipynb 11
 COCO_COLORS = np.array(
     [
         0.000, 0.447, 0.741,
@@ -327,7 +327,7 @@ def bbox_visualize(img, boxes, scores, cls_ids, conf=0.5, class_names=None, text
 
     return img
 
-# %% ../nbs/00_visualize.ipynb 15
+# %% ../nbs/00_visualize.ipynb 14
 class Board:
     """
         Example:
